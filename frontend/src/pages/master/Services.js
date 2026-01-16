@@ -97,7 +97,7 @@ const Services = () => {
               <h4 className="font-semibold mb-3">Base Formula</h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Short services (< 1 hour)</span>
+                  <span className="text-gray-600">Short services (&lt; 1 hour)</span>
                   <span className="font-semibold">25-30% of price</span>
                 </div>
                 <div className="flex justify-between">
