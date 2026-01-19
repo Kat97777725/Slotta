@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/Card';
 import { 
   Clock, Shield, TrendingUp, Zap, Calendar, DollarSign, 
   Heart, Users, CheckCircle, Star, ArrowRight, Sparkles,
-  Scissors, Paintbrush, Eye, Pen, Sparkle, Store
+  Scissors, Eye, Pen, Sparkle, Store, Scan, Hand
 } from 'lucide-react';
 
 const LandingPage = () => {
