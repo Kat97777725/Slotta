@@ -286,23 +286,25 @@ const LandingPage = () => {
           <h2 className="text-4xl font-bold text-center mb-12" data-testid="who-its-for-title">
             Built for Beauty Professionals
           </h2>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-4 gap-6">
             {[
               { title: 'Hair Stylists', icon: Scissors, gradient: 'from-purple-500 to-pink-500' },
               { title: 'Nail Artists', icon: Sparkle, gradient: 'from-pink-500 to-rose-500' },
               { title: 'Lash Technicians', icon: Eye, gradient: 'from-indigo-500 to-purple-500' },
-              { title: 'Tattoo Artists', icon: Pen, gradient: 'from-violet-500 to-purple-500' },
-              { title: 'Estheticians', icon: Sparkles, gradient: 'from-fuchsia-500 to-pink-500' },
+              { title: 'Brow Artists', icon: Scan, gradient: 'from-violet-500 to-fuchsia-500' },
+              { title: 'Tattoo Artists', icon: Pen, gradient: 'from-purple-600 to-pink-600' },
+              { title: 'Skin & Aesthetics', icon: Sparkles, gradient: 'from-fuchsia-500 to-pink-500' },
+              { title: 'Massage Therapists', icon: Hand, gradient: 'from-rose-500 to-pink-500' },
               { title: 'Salon Owners', icon: Store, gradient: 'from-purple-600 to-indigo-600' },
             ].map((prof, idx) => (
               <Card 
                 key={idx} 
-                className="p-8 text-center hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group border-2 border-transparent hover:border-purple-200"
+                className="p-6 text-center hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group border-2 border-transparent hover:border-purple-200"
               >
-                <div className={`w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br ${prof.gradient} flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
-                  <prof.icon className="w-10 h-10 text-white" />
+                <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br ${prof.gradient} flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
+                  <prof.icon className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 group-hover:text-purple-600 transition">{prof.title}</h3>
+                <h3 className="text-base font-semibold text-gray-900 group-hover:text-purple-600 transition">{prof.title}</h3>
               </Card>
             ))}
           </div>
