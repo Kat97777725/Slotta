@@ -139,6 +139,19 @@ export const calendarAPI = {
 };
 
 // =============================================================================
+// GOOGLE CALENDAR
+// =============================================================================
+
+export const googleCalendarAPI = {
+  getAuthUrl: () => api.get('/google/auth-url'),
+  callback: (code) => api.post('/google/oauth/callback', { code }),
+  syncStatus: (masterId) => api.get(`/google/sync-status/${masterId}`),
+  disconnect: (masterId) => api.post(`/google/disconnect/${masterId}`),
+  syncNow: (masterId) => api.post(`/google/sync/${masterId}`),
+  importEvents: (masterId) => api.post(`/google/import-events/${masterId}`),
+};
+
+// =============================================================================
 // ANALYTICS
 // =============================================================================
 
