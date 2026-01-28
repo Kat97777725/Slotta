@@ -1,25 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MasterLayout } from './Dashboard';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { bookingsAPI } from '@/lib/api';
 import { Calendar, Search, Filter } from 'lucide-react';
+
+const MASTER_ID = 'demo-master-123';
 
 const Bookings = () => {
   const navigate = useNavigate();
   const [filter, setFilter] = useState('all');
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const bookings = [
-    { id: 1, client: 'Emma Wilson', service: 'Balayage', date: '2025-02-15', time: '09:00', price: 150, slotta: 40, status: 'confirmed' },
-    { id: 2, client: 'Olivia Smith', service: 'Haircut & Style', date: '2025-02-15', time: '11:00', price: 60, slotta: 18, status: 'confirmed' },
-    { id: 3, client: 'James Parker', service: 'Men\'s Cut', date: '2025-02-15', time: '14:30', price: 40, slotta: 12, status: 'pending' },
-    { id: 4, client: 'Sophie Taylor', service: 'Keratin Treatment', date: '2025-02-16', time: '10:00', price: 120, slotta: 35, status: 'confirmed' },
-    { id: 5, client: 'New Client', service: 'Color Correction', date: '2025-02-16', time: '14:00', price: 200, slotta: 60, status: 'pending' },
-    { id: 6, client: 'Lucy Brown', service: 'Balayage', date: '2025-02-12', time: '15:00', price: 150, slotta: 40, status: 'completed' },
-    { id: 7, client: 'Michael Chen', service: 'Men\'s Cut', date: '2025-02-11', time: '10:30', price: 40, slotta: 12, status: 'completed' },
-    { id: 8, client: 'Sarah Johnson', service: 'Color Correction', date: '2025-02-10', time: '13:00', price: 200, slotta: 60, status: 'no-show' },
-  ];
+  useEffect(() => {
+    loadBookings();
+  }, []);
+
+  const loadBookings = async () => {
+    try {
+      setLoading(true);
+      const response = await bookingsAPI.getByMaster(MASTER_ID);
+      setBookings(response.data || []);
+    } catch (error) {
+      console.error('Failed to load bookings:', error);
+      // Fallback to mock data
+      setBookings([
+        { id: 1, client_id: 'Emma Wilson', service_id: 'Balayage', booking_date: '2025-02-15T09:00:00', service_price: 150, slotta_amount: 40, status: 'confirmed' },
+        { id: 2, client_id: 'Olivia Smith', service_id: 'Haircut', booking_date: '2025-02-15T11:00:00', service_price: 60, slotta_amount: 18, status: 'confirmed' },
+        { id: 3, client_id: 'James Parker', service_id: 'Mens Cut', booking_date: '2025-02-15T14:30:00', service_price: 40, slotta_amount: 12, status: 'pending' },
+        { id: 4, client_id: 'Sophie Taylor', service_id: 'Keratin', booking_date: '2025-02-16T10:00:00', service_price: 120, slotta_amount: 35, status: 'confirmed' },
+        { id: 5, client_id: 'New Client', service_id: 'Color Correction', booking_date: '2025-02-16T14:00:00', service_price: 200, slotta_amount: 60, status: 'pending' },
+        { id: 6, client_id: 'Lucy Brown', service_id: 'Balayage', booking_date: '2025-02-12T15:00:00', service_price: 150, slotta_amount: 40, status: 'completed' },
+        { id: 7, client_id: 'Michael Chen', service_id: 'Mens Cut', booking_date: '2025-02-11T10:30:00', service_price: 40, slotta_amount: 12, status: 'completed' },
+        { id: 8, client_id: 'Sarah Johnson', service_id: 'Color Correction', booking_date: '2025-02-10T13:00:00', service_price: 200, slotta_amount: 60, status: 'no-show' },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const statusColors = {
     confirmed: 'success',
