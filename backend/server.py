@@ -89,6 +89,78 @@ app = FastAPI(title="Slotta API", version="1.0.0")
 api_router = APIRouter(prefix="/api")
 
 # ============================================================================
+# AUTHENTICATION ENDPOINTS
+# ============================================================================
+
+@api_router.post("/auth/register")
+async def register_master(master_input: MasterCreate):
+    """Register a new master account"""
+    
+    # Check if email already exists
+    existing_email = await db.masters.find_one({"email": master_input.email})
+    if existing_email:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Check if slug is unique
+    existing_slug = await db.masters.find_one({"booking_slug": master_input.booking_slug})
+    if existing_slug:
+        raise HTTPException(status_code=400, detail="Booking slug already taken")
+    
+    # Create master with hashed password
+    master_data = master_input.model_dump()
+    password = master_data.pop('password')
+    master_data['password_hash'] = hash_password(password)
+    
+    master = Master(**master_data)
+    await db.masters.insert_one(master.model_dump())
+    
+    # Generate token
+    token = create_token(master.id, master.email)
+    
+    logger.info(f"✅ Master registered: {master.name} ({master.email})")
+    
+    # Return without password_hash
+    master_dict = master.model_dump()
+    del master_dict['password_hash']
+    
+    return {
+        "token": token,
+        "master": master_dict
+    }
+
+@api_router.post("/auth/login")
+async def login_master(login_data: MasterLogin):
+    """Login master and get JWT token"""
+    
+    # Find master by email
+    master = await db.masters.find_one({"email": login_data.email})
+    if not master:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    # Verify password
+    if not master.get('password_hash') or not verify_password(login_data.password, master['password_hash']):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    # Generate token
+    token = create_token(master['id'], master['email'])
+    
+    logger.info(f"✅ Master logged in: {master['email']}")
+    
+    # Return without password_hash
+    del master['password_hash']
+    del master['_id']
+    
+    return {
+        "token": token,
+        "master": master
+    }
+
+@api_router.get("/auth/me")
+async def get_current_user(current_master: dict = Depends(get_current_master)):
+    """Get current authenticated master profile"""
+    return current_master
+
+# ============================================================================
 # MASTER ENDPOINTS
 # ============================================================================
 
