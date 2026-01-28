@@ -1,6 +1,6 @@
-"""TimeHold Calculation Engine
+"""AuraSync Calculation Engine
 
-This module calculates the fair TimeHold amount based on:
+This module calculates the fair AuraSync amount based on:
 - Service price and duration
 - Client reliability
 - Booking patterns
@@ -10,7 +10,7 @@ This module calculates the fair TimeHold amount based on:
 from datetime import datetime
 from typing import Optional
 
-class TimeHoldEngine:
+class AuraSyncEngine:
     
     # Base percentages by service duration
     BASE_PERCENTAGES = {
@@ -31,8 +31,8 @@ class TimeHoldEngine:
     MIN_AMOUNT = 10.0      # Minimum €10 for long services
     
     @classmethod
-    def calculate_base_timehold(cls, price: float, duration_minutes: int) -> float:
-        """Calculate base TimeHold based on service price and duration"""
+    def calculate_base_aurasync(cls, price: float, duration_minutes: int) -> float:
+        """Calculate base AuraSync based on service price and duration"""
         
         if duration_minutes < 60:
             percentage = cls.BASE_PERCENTAGES['short']
@@ -44,7 +44,7 @@ class TimeHoldEngine:
         return price * percentage
     
     @classmethod
-    def calculate_timehold(
+    def calculate_aurasync(
         cls,
         price: float,
         duration_minutes: int,
@@ -54,10 +54,10 @@ class TimeHoldEngine:
         is_peak_slot: bool = False,
         booking_lead_time_hours: Optional[int] = None
     ) -> float:
-        """Calculate final TimeHold amount with all modifiers"""
+        """Calculate final AuraSync amount with all modifiers"""
         
         # Start with base
-        base = cls.calculate_base_timehold(price, duration_minutes)
+        base = cls.calculate_base_aurasync(price, duration_minutes)
         
         # Initialize modifier
         total_modifier = 0.0
@@ -93,14 +93,14 @@ class TimeHoldEngine:
         return round(final_amount, 2)
     
     @classmethod
-    def calculate_no_show_split(cls, timehold_amount: float) -> dict:
-        """Calculate how TimeHold is split on no-show
+    def calculate_no_show_split(cls, aurasync_amount: float) -> dict:
+        """Calculate how AuraSync is split on no-show
         
         Returns:
             dict: {'master_compensation': float, 'client_wallet_credit': float}
         """
-        master_portion = timehold_amount * 0.625  # 62.5% to master
-        client_portion = timehold_amount * 0.375  # 37.5% to client wallet
+        master_portion = aurasync_amount * 0.625  # 62.5% to master
+        client_portion = aurasync_amount * 0.375  # 37.5% to client wallet
         
         return {
             'master_compensation': round(master_portion, 2),
