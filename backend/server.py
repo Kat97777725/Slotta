@@ -86,7 +86,7 @@ async def create_service(service_input: ServiceCreate):
     """Create a new service"""
     
     # Calculate base Slotta
-    base_slotta = TimeHoldEngine.calculate_base_slotta(
+    base_slotta = SlottaEngine.calculate_base_slotta(
         service_input.price,
         service_input.duration_minutes
     )
@@ -250,7 +250,7 @@ async def create_booking(booking_input: BookingCreate):
         raise HTTPException(status_code=404, detail="Client not found")
     
     # Calculate Slotta
-    slotta_amount = TimeHoldEngine.calculate_slotta(
+    slotta_amount = SlottaEngine.calculate_slotta(
         price=service['price'],
         duration_minutes=service['duration_minutes'],
         client_reliability=client['reliability'],
@@ -259,7 +259,7 @@ async def create_booking(booking_input: BookingCreate):
     )
     
     # Calculate risk score
-    risk_score = TimeHoldEngine.calculate_risk_score(
+    risk_score = SlottaEngine.calculate_risk_score(
         total_bookings=client['total_bookings'],
         completed_bookings=client['completed_bookings'],
         no_shows=client['no_shows'],
@@ -376,7 +376,7 @@ async def mark_booking_complete(booking_id: str):
     
     # Update client reliability
     client = await db.clients.find_one({"id": booking['client_id']}, {"_id": 0})
-    new_reliability = TimeHoldEngine.determine_reliability(
+    new_reliability = SlottaEngine.determine_reliability(
         total_bookings=client['total_bookings'],
         no_shows=client['no_shows']
     )
@@ -401,7 +401,7 @@ async def mark_booking_no_show(booking_id: str):
         raise HTTPException(status_code=404, detail="Booking not found")
     
     # Calculate split
-    split = TimeHoldEngine.calculate_no_show_split(booking['slotta_amount'])
+    split = SlottaEngine.calculate_no_show_split(booking['slotta_amount'])
     
     # Update booking status
     await db.bookings.update_one(
@@ -422,7 +422,7 @@ async def mark_booking_no_show(booking_id: str):
     
     # Update client reliability
     client = await db.clients.find_one({"id": booking['client_id']}, {"_id": 0})
-    new_reliability = TimeHoldEngine.determine_reliability(
+    new_reliability = SlottaEngine.determine_reliability(
         total_bookings=client['total_bookings'],
         no_shows=client['no_shows'] + 1
     )
