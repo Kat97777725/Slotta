@@ -61,6 +61,7 @@ const BookingDetail = () => {
   const handleComplete = () => {
     alert('Booking marked as completed!');
     navigate('/master/bookings');
+  };
 
   const handleSendMessage = async () => {
     if (!messageText.trim()) {
