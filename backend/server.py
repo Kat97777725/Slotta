@@ -180,7 +180,7 @@ async def create_booking(booking_input: BookingCreate):
         raise HTTPException(status_code=404, detail="Client not found")
     
     # Calculate AuraSync
-    aurasync_amount = AuraSyncEngine.calculate_aurasync(
+    aurasync_amount = TimeHoldEngine.calculate_aurasync(
         price=service['price'],
         duration_minutes=service['duration_minutes'],
         client_reliability=client['reliability'],
