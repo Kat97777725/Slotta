@@ -83,6 +83,24 @@ export const bookingsAPI = {
 };
 
 // =============================================================================
+// MESSAGES
+// =============================================================================
+
+export const messagesAPI = {
+  sendToClient: (data) => api.post('/messages/send', data),
+};
+
+// =============================================================================
+// CALENDAR BLOCKS
+// =============================================================================
+
+export const calendarAPI = {
+  createBlock: (data) => api.post('/calendar/blocks', data),
+  getBlocksByMaster: (masterId) => api.get(`/calendar/blocks/master/${masterId}`),
+  deleteBlock: (blockId) => api.delete(`/calendar/blocks/${blockId}`),
+};
+
+// =============================================================================
 // ANALYTICS
 // =============================================================================
 
