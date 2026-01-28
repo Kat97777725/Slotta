@@ -59,7 +59,7 @@ const Wallet = () => {
             </div>
             <div className="text-4xl font-bold mb-2 text-green-600">€{lifetimeEarnings}</div>
             <div className="text-gray-600">Lifetime Earnings</div>
-            <div className="text-sm text-gray-500 mt-2">Total from TimeHold</div>
+            <div className="text-sm text-gray-500 mt-2">Total from AuraSync</div>
           </CardContent>
         </Card>
       </div>
@@ -125,7 +125,7 @@ const Wallet = () => {
                   </div>
                   <div>
                     <div className="font-semibold">
-                      {transaction.type === 'payout' ? 'Payout' : 'TimeHold Credit'}
+                      {transaction.type === 'payout' ? 'Payout' : 'AuraSync Credit'}
                     </div>
                     <div className="text-sm text-gray-500">
                       {transaction.reason || transaction.method}

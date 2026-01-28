@@ -25,7 +25,7 @@ const Sidebar = ({ active }) => {
       <div className="flex items-center space-x-2 mb-8">
         <Clock className="w-8 h-8 text-purple-600" />
         <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-          TimeHold
+          AuraSync
         </span>
       </div>
       <nav className="space-y-2">
@@ -89,11 +89,11 @@ const Dashboard = () => {
   ];
 
   const todayBookings = [
-    { id: 1, client: 'Emma Wilson', service: 'Balayage', time: '09:00', timehold: 40, status: 'confirmed' },
-    { id: 2, client: 'Olivia Smith', service: 'Haircut & Style', time: '11:00', timehold: 18, status: 'confirmed' },
-    { id: 3, client: 'James Parker', service: 'Men\'s Cut', time: '14:30', timehold: 12, status: 'pending' },
-    { id: 4, client: 'Sophie Taylor', service: 'Keratin Treatment', time: '16:00', timehold: 35, status: 'confirmed' },
-    { id: 5, client: 'New Client', service: 'Color Correction', time: '18:00', timehold: 60, status: 'high-risk' },
+    { id: 1, client: 'Emma Wilson', service: 'Balayage', time: '09:00', aurasync: 40, status: 'confirmed' },
+    { id: 2, client: 'Olivia Smith', service: 'Haircut & Style', time: '11:00', aurasync: 18, status: 'confirmed' },
+    { id: 3, client: 'James Parker', service: 'Men\'s Cut', time: '14:30', aurasync: 12, status: 'pending' },
+    { id: 4, client: 'Sophie Taylor', service: 'Keratin Treatment', time: '16:00', aurasync: 35, status: 'confirmed' },
+    { id: 5, client: 'New Client', service: 'Color Correction', time: '18:00', aurasync: 60, status: 'high-risk' },
   ];
 
   const statusColors = {
@@ -156,7 +156,7 @@ const Dashboard = () => {
                 <div className="flex items-center space-x-6">
                   <div className="text-right">
                     <div className="font-semibold">{booking.time}</div>
-                    <div className="text-sm text-gray-500">€{booking.timehold} protected</div>
+                    <div className="text-sm text-gray-500">€{booking.aurasync} protected</div>
                   </div>
                   <Badge variant={statusColors[booking.status]}>
                     {booking.status}
@@ -177,7 +177,7 @@ const Dashboard = () => {
         </Card>
         <Card className="p-6 cursor-pointer hover:shadow-lg transition" onClick={() => navigate('/master/services')}>
           <Shield className="w-8 h-8 text-purple-600 mb-3" />
-          <h3 className="font-semibold mb-2">Adjust TimeHold</h3>
+          <h3 className="font-semibold mb-2">Adjust AuraSync</h3>
           <p className="text-sm text-gray-600">Update service protection</p>
         </Card>
         <Card className="p-6 cursor-pointer hover:shadow-lg transition" onClick={() => navigate('/master/analytics')}>

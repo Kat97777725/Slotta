@@ -8,7 +8,7 @@ const Analytics = () => {
   const stats = [
     { label: 'Time Protected', value: '€2,450', change: '+12%', trend: 'up', icon: Shield },
     { label: 'No-Shows Avoided', value: '12', change: '-3', trend: 'down', icon: AlertTriangle },
-    { label: 'Avg TimeHold', value: '€35', change: '+€5', trend: 'up', icon: DollarSign },
+    { label: 'Avg AuraSync', value: '€35', change: '+€5', trend: 'up', icon: DollarSign },
     { label: 'Active Clients', value: '48', change: '+8', trend: 'up', icon: Users },
   ];
 
@@ -119,7 +119,7 @@ const Analytics = () => {
             </div>
             <div className="mt-4 p-4 bg-blue-50 rounded-lg">
               <p className="text-sm text-blue-900">
-                <strong>Insight:</strong> 9-11 AM and 3-5 PM slots have highest demand. Consider increasing TimeHold for these peak times.
+                <strong>Insight:</strong> 9-11 AM and 3-5 PM slots have highest demand. Consider increasing AuraSync for these peak times.
               </p>
             </div>
           </CardContent>
@@ -185,7 +185,7 @@ const Analytics = () => {
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-700">
               <strong>Industry Comparison:</strong> Average no-show rate in beauty industry is 15-20%. 
-              Your rate of 4.8% shows TimeHold is working effectively!
+              Your rate of 4.8% shows AuraSync is working effectively!
             </p>
           </div>
         </CardContent>

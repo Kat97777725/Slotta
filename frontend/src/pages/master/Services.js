@@ -7,21 +7,21 @@ import { Plus, Edit, Trash, Shield, Clock, DollarSign, ToggleLeft, ToggleRight }
 
 const Services = () => {
   const [services, setServices] = useState([
-    { id: 1, name: 'Balayage Hair Color', duration: '3 hours', price: 150, timehold: 40, active: true, newClientsOnly: false },
-    { id: 2, name: 'Women\'s Haircut & Style', duration: '1 hour', price: 60, timehold: 18, active: true, newClientsOnly: false },
-    { id: 3, name: 'Color Correction', duration: '4 hours', price: 200, timehold: 60, active: true, newClientsOnly: true },
-    { id: 4, name: 'Keratin Treatment', duration: '2.5 hours', price: 120, timehold: 35, active: true, newClientsOnly: false },
-    { id: 5, name: 'Men\'s Haircut', duration: '45 min', price: 40, timehold: 12, active: true, newClientsOnly: false },
-    { id: 6, name: 'Hair Extensions', duration: '5 hours', price: 350, timehold: 90, active: false, newClientsOnly: true },
+    { id: 1, name: 'Balayage Hair Color', duration: '3 hours', price: 150, aurasync: 40, active: true, newClientsOnly: false },
+    { id: 2, name: 'Women\'s Haircut & Style', duration: '1 hour', price: 60, aurasync: 18, active: true, newClientsOnly: false },
+    { id: 3, name: 'Color Correction', duration: '4 hours', price: 200, aurasync: 60, active: true, newClientsOnly: true },
+    { id: 4, name: 'Keratin Treatment', duration: '2.5 hours', price: 120, aurasync: 35, active: true, newClientsOnly: false },
+    { id: 5, name: 'Men\'s Haircut', duration: '45 min', price: 40, aurasync: 12, active: true, newClientsOnly: false },
+    { id: 6, name: 'Hair Extensions', duration: '5 hours', price: 350, aurasync: 90, active: false, newClientsOnly: true },
   ]);
 
   return (
-    <MasterLayout active="services" title="Services & TimeHold Rules">
+    <MasterLayout active="services" title="Services & AuraSync Rules">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-xl font-semibold mb-2">Manage Your Services</h2>
-          <p className="text-gray-600">Set prices, duration, and TimeHold protection for each service</p>
+          <p className="text-gray-600">Set prices, duration, and AuraSync protection for each service</p>
         </div>
         <Button data-testid="add-service-btn">
           <Plus className="w-4 h-4 mr-2" />
@@ -62,11 +62,11 @@ const Services = () => {
                     <div>
                       <div className="flex items-center space-x-2 text-purple-600 mb-1">
                         <Shield className="w-4 h-4" />
-                        <span className="text-sm font-medium">TimeHold</span>
+                        <span className="text-sm font-medium">AuraSync</span>
                       </div>
-                      <div className="font-bold text-lg text-purple-600">€{service.timehold}</div>
+                      <div className="font-bold text-lg text-purple-600">€{service.aurasync}</div>
                       <div className="text-xs text-gray-500 mt-1">
-                        {((service.timehold / service.price) * 100).toFixed(0)}% of price
+                        {((service.aurasync / service.price) * 100).toFixed(0)}% of price
                       </div>
                     </div>
                   </div>
@@ -86,10 +86,10 @@ const Services = () => {
         ))}
       </div>
 
-      {/* TimeHold Rules Explanation */}
+      {/* AuraSync Rules Explanation */}
       <Card>
         <CardHeader>
-          <CardTitle>How TimeHold is Calculated</CardTitle>
+          <CardTitle>How AuraSync is Calculated</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-2 gap-6">
@@ -134,7 +134,7 @@ const Services = () => {
           </div>
           <div className="mt-4 p-4 bg-purple-50 rounded-lg">
             <p className="text-sm text-purple-900">
-              <strong>Note:</strong> TimeHold never exceeds 70% of service price or drops below €10 for long services.
+              <strong>Note:</strong> AuraSync never exceeds 70% of service price or drops below €10 for long services.
             </p>
           </div>
         </CardContent>
@@ -144,8 +144,8 @@ const Services = () => {
       <div className="grid grid-cols-3 gap-6 mt-6">
         {[
           { label: 'Active Services', value: services.filter(s => s.active).length },
-          { label: 'Average TimeHold', value: `€${Math.round(services.reduce((acc, s) => acc + s.timehold, 0) / services.length)}` },
-          { label: 'Total Protection', value: `€${services.reduce((acc, s) => acc + s.timehold, 0)}` },
+          { label: 'Average AuraSync', value: `€${Math.round(services.reduce((acc, s) => acc + s.aurasync, 0) / services.length)}` },
+          { label: 'Total Protection', value: `€${services.reduce((acc, s) => acc + s.aurasync, 0)}` },
         ].map((stat, idx) => (
           <Card key={idx} className="p-6 text-center">
             <div className="text-3xl font-bold text-purple-600 mb-2">{stat.value}</div>

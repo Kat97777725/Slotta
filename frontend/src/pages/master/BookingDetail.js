@@ -30,7 +30,7 @@ const BookingDetail = () => {
     time: '09:00',
     duration: '3 hours',
     price: 150,
-    timehold: 40,
+    aurasync: 40,
     status: 'confirmed',
     bookedAt: '2025-02-08 14:30',
     rescheduleDeadline: '2025-02-13 23:59',
@@ -56,8 +56,8 @@ const BookingDetail = () => {
   };
 
   const handleNoShow = () => {
-    if (confirm('Mark this booking as no-show? TimeHold will be captured.')) {
-      alert('TimeHold captured: €25 to your wallet, €15 client credit');
+    if (confirm('Mark this booking as no-show? AuraSync will be captured.')) {
+      alert('AuraSync captured: €25 to your wallet, €15 client credit');
       navigate('/master/bookings');
     }
   };
@@ -123,9 +123,9 @@ const BookingDetail = () => {
                     <div className="flex justify-between items-center">
                       <div className="flex items-center space-x-2">
                         <Shield className="w-4 h-4 text-purple-600" />
-                        <span className="font-medium text-purple-600">TimeHold Amount</span>
+                        <span className="font-medium text-purple-600">AuraSync Amount</span>
                       </div>
-                      <span className="font-bold text-lg text-purple-600">€{booking.timehold}</span>
+                      <span className="font-bold text-lg text-purple-600">€{booking.aurasync}</span>
                     </div>
                     <p className="text-xs text-gray-500 mt-2">
                       Authorized on client's card. Will be released when they arrive.

@@ -146,7 +146,7 @@ const Clients = () => {
                 <h4 className="font-semibold">Reliable</h4>
               </div>
               <p className="text-sm text-gray-600">
-                Excellent booking history with 0-1 no-shows. TimeHold reduced by 20%.
+                Excellent booking history with 0-1 no-shows. AuraSync reduced by 20%.
               </p>
             </div>
             <div>
@@ -155,7 +155,7 @@ const Clients = () => {
                 <h4 className="font-semibold">New Client</h4>
               </div>
               <p className="text-sm text-gray-600">
-                First-time or early bookings. TimeHold increased by 20% as protection.
+                First-time or early bookings. AuraSync increased by 20% as protection.
               </p>
             </div>
             <div>
@@ -164,7 +164,7 @@ const Clients = () => {
                 <h4 className="font-semibold">Needs Protection</h4>
               </div>
               <p className="text-sm text-gray-600">
-                History of 2+ no-shows. TimeHold increased by 30% to protect your time.
+                History of 2+ no-shows. AuraSync increased by 30% to protect your time.
               </p>
             </div>
           </div>

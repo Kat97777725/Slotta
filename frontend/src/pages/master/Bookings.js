@@ -11,14 +11,14 @@ const Bookings = () => {
   const [filter, setFilter] = useState('all');
 
   const bookings = [
-    { id: 1, client: 'Emma Wilson', service: 'Balayage', date: '2025-02-15', time: '09:00', price: 150, timehold: 40, status: 'confirmed' },
-    { id: 2, client: 'Olivia Smith', service: 'Haircut & Style', date: '2025-02-15', time: '11:00', price: 60, timehold: 18, status: 'confirmed' },
-    { id: 3, client: 'James Parker', service: 'Men\'s Cut', date: '2025-02-15', time: '14:30', price: 40, timehold: 12, status: 'pending' },
-    { id: 4, client: 'Sophie Taylor', service: 'Keratin Treatment', date: '2025-02-16', time: '10:00', price: 120, timehold: 35, status: 'confirmed' },
-    { id: 5, client: 'New Client', service: 'Color Correction', date: '2025-02-16', time: '14:00', price: 200, timehold: 60, status: 'pending' },
-    { id: 6, client: 'Lucy Brown', service: 'Balayage', date: '2025-02-12', time: '15:00', price: 150, timehold: 40, status: 'completed' },
-    { id: 7, client: 'Michael Chen', service: 'Men\'s Cut', date: '2025-02-11', time: '10:30', price: 40, timehold: 12, status: 'completed' },
-    { id: 8, client: 'Sarah Johnson', service: 'Color Correction', date: '2025-02-10', time: '13:00', price: 200, timehold: 60, status: 'no-show' },
+    { id: 1, client: 'Emma Wilson', service: 'Balayage', date: '2025-02-15', time: '09:00', price: 150, aurasync: 40, status: 'confirmed' },
+    { id: 2, client: 'Olivia Smith', service: 'Haircut & Style', date: '2025-02-15', time: '11:00', price: 60, aurasync: 18, status: 'confirmed' },
+    { id: 3, client: 'James Parker', service: 'Men\'s Cut', date: '2025-02-15', time: '14:30', price: 40, aurasync: 12, status: 'pending' },
+    { id: 4, client: 'Sophie Taylor', service: 'Keratin Treatment', date: '2025-02-16', time: '10:00', price: 120, aurasync: 35, status: 'confirmed' },
+    { id: 5, client: 'New Client', service: 'Color Correction', date: '2025-02-16', time: '14:00', price: 200, aurasync: 60, status: 'pending' },
+    { id: 6, client: 'Lucy Brown', service: 'Balayage', date: '2025-02-12', time: '15:00', price: 150, aurasync: 40, status: 'completed' },
+    { id: 7, client: 'Michael Chen', service: 'Men\'s Cut', date: '2025-02-11', time: '10:30', price: 40, aurasync: 12, status: 'completed' },
+    { id: 8, client: 'Sarah Johnson', service: 'Color Correction', date: '2025-02-10', time: '13:00', price: 200, aurasync: 60, status: 'no-show' },
   ];
 
   const statusColors = {
@@ -96,7 +96,7 @@ const Bookings = () => {
                       <span className="font-semibold">{booking.time}</span>
                     </div>
                     <div className="text-sm text-gray-500">
-                      €{booking.price} • TimeHold: €{booking.timehold}
+                      €{booking.price} • AuraSync: €{booking.aurasync}
                     </div>
                   </div>
                   <Badge variant={statusColors[booking.status]} className="min-w-[100px] justify-center">

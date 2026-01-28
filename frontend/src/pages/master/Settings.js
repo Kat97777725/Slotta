@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/Badge';
 import { User, Bell, Clock, Link as LinkIcon, CreditCard, Shield, Save } from 'lucide-react';
 
 const Settings = () => {
-  const [bookingLink] = useState('timehold.com/sophiabrown');
+  const [bookingLink] = useState('aurasync.com/sophiabrown');
 
   return (
     <MasterLayout active="settings" title="Settings">
@@ -80,7 +80,7 @@ const Settings = () => {
             <Button>Share</Button>
           </div>
           <p className="text-sm text-gray-600 mt-3">
-            Share this link with clients for easy booking. It's your unique TimeHold booking page.
+            Share this link with clients for easy booking. It's your unique AuraSync booking page.
           </p>
         </CardContent>
       </Card>
