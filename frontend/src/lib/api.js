@@ -98,6 +98,7 @@ export const clientsAPI = {
   create: (data) => api.post('/clients', data),
   getById: (id) => api.get(`/clients/${id}`),
   getByEmail: (email) => api.get(`/clients/email/${email}`),
+  getByMaster: (masterId) => api.get(`/clients/master/${masterId}`),
 };
 
 // =============================================================================
