@@ -19,7 +19,7 @@ load_dotenv(ROOT_DIR / '.env')
 # Import models and services
 from models import (
     Master, MasterCreate, MasterLogin, MasterResponse, Service, ServiceCreate,
-    Client, ClientCreate, Booking, BookingCreate,
+    Client, ClientCreate, Booking, BookingCreate, BookingCreateWithPayment,
     Transaction, TransactionCreate, BookingStatus, ClientReliability
 )
 from slotta_engine import SlottaEngine
