@@ -41,8 +41,10 @@ const Services = () => {
   };
 
   useEffect(() => {
-    loadServices();
-  }, []);
+    if (masterId) {
+      loadServices();
+    }
+  }, [masterId]);
 
   // Calculate Slotta amount based on duration and price
   const calculateSlotta = (price, durationMinutes) => {
@@ -62,7 +64,7 @@ const Services = () => {
     try {
       setLoading(true);
       const response = await servicesAPI.create({
-        master_id: MASTER_ID,
+        master_id: masterId,
         ...formData,
       });
       setServices([...services, response.data]);
