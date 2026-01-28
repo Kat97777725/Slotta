@@ -125,11 +125,11 @@ class Booking(MongoModel):
     
     # Booking details
     booking_date: datetime
-    duration_minutes: int
+    duration_minutes: int = 0
     
     # Pricing
-    service_price: float
-    timehold_amount: float
+    service_price: float = 0.0
+    slotta_amount: float = 0.0  # The calculated Slotta hold amount
     
     # Status
     status: BookingStatus = BookingStatus.PENDING
@@ -142,7 +142,7 @@ class Booking(MongoModel):
     risk_score: int = 0  # 0-100
     
     # Policy
-    reschedule_deadline: datetime
+    reschedule_deadline: Optional[datetime] = None
     
     # Notes
     notes: Optional[str] = None
