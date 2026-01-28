@@ -2,13 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { bookingsAPI, analyticsAPI } from '@/lib/api';
+import { Button } from '@/components/ui/Button';
+import { bookingsAPI, analyticsAPI, authAPI } from '@/lib/api';
 import { 
   LayoutDashboard, Calendar, Briefcase, Users, Wallet, 
-  Settings, TrendingUp, Clock, Shield, DollarSign, AlertCircle, Menu
+  Settings, TrendingUp, Clock, Shield, DollarSign, AlertCircle, Menu, LogOut
 } from 'lucide-react';
-
-const MASTER_ID = 'demo-master-123'; // TODO: Get from auth context
 
 const Sidebar = ({ active }) => {
   const navigate = useNavigate();
@@ -48,12 +47,26 @@ const Sidebar = ({ active }) => {
           </button>
         ))}
       </nav>
+      
+      {/* Logout button */}
+      <div className="mt-8 pt-8 border-t">
+        <button
+          onClick={() => authAPI.logout()}
+          className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition"
+          data-testid="logout-btn"
+        >
+          <LogOut className="w-5 h-5" />
+          <span>Logout</span>
+        </button>
+      </div>
     </div>
   );
 };
 
 const MasterLayout = ({ children, active, title }) => {
   const navigate = useNavigate();
+  const master = authAPI.getMaster();
+  
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar active={active} />
@@ -64,11 +77,11 @@ const MasterLayout = ({ children, active, title }) => {
             <Badge variant="success">Active</Badge>
             <div className="flex items-center space-x-2">
               <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-                SB
+                {master?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
               </div>
               <div>
-                <div className="text-sm font-semibold">Sophia Brown</div>
-                <div className="text-xs text-gray-500">Hair Stylist</div>
+                <div className="text-sm font-semibold">{master?.name || 'User'}</div>
+                <div className="text-xs text-gray-500">{master?.specialty || 'Professional'}</div>
               </div>
             </div>
           </div>
@@ -84,6 +97,9 @@ const MasterLayout = ({ children, active, title }) => {
 const Dashboard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const master = authAPI.getMaster();
+  const masterId = master?.id;
+  
   const [stats, setStats] = useState({
     todayBookings: 0,
     timeProtected: 0,
@@ -93,16 +109,18 @@ const Dashboard = () => {
   const [todayBookings, setTodayBookings] = useState([]);
 
   useEffect(() => {
-    loadDashboardData();
-  }, []);
+    if (masterId) {
+      loadDashboardData();
+    }
+  }, [masterId]);
 
   const loadDashboardData = async () => {
     try {
       setLoading(true);
       
       // Load bookings
-      const bookingsResponse = await bookingsAPI.getByMaster(MASTER_ID);
-      const allBookings = bookingsResponse.data;
+      const bookingsResponse = await bookingsAPI.getByMaster(masterId);
+      const allBookings = bookingsResponse.data || [];
       
       // Filter today's bookings
       const today = new Date().toISOString().split('T')[0];
@@ -111,7 +129,7 @@ const Dashboard = () => {
       );
       
       // Load analytics
-      const analyticsResponse = await analyticsAPI.getMasterAnalytics(MASTER_ID);
+      const analyticsResponse = await analyticsAPI.getMasterAnalytics(masterId);
       const analytics = analyticsResponse.data;
       
       setStats({
@@ -125,20 +143,14 @@ const Dashboard = () => {
       
     } catch (error) {
       console.error('Failed to load dashboard:', error);
-      // Fallback to mock data
+      // Set empty data on error
       setStats({
-        todayBookings: 5,
-        timeProtected: 2450,
-        noShowsAvoided: 12,
-        walletBalance: 840
+        todayBookings: 0,
+        timeProtected: 0,
+        noShowsAvoided: 0,
+        walletBalance: 0
       });
-      setTodayBookings([
-        { id: 1, client_id: 'c1', service_id: 's1', booking_date: new Date().toISOString(), slotta_amount: 40, status: 'confirmed' },
-        { id: 2, client_id: 'c2', service_id: 's2', booking_date: new Date().toISOString(), slotta_amount: 18, status: 'confirmed' },
-        { id: 3, client_id: 'c3', service_id: 's3', booking_date: new Date().toISOString(), slotta_amount: 12, status: 'pending' },
-        { id: 4, client_id: 'c4', service_id: 's4', booking_date: new Date().toISOString(), slotta_amount: 35, status: 'confirmed' },
-        { id: 5, client_id: 'c5', service_id: 's5', booking_date: new Date().toISOString(), slotta_amount: 60, status: 'pending' },
-      ]);
+      setTodayBookings([]);
     } finally {
       setLoading(false);
     }
