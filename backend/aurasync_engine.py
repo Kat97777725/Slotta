@@ -10,7 +10,7 @@ This module calculates the fair AuraSync amount based on:
 from datetime import datetime
 from typing import Optional
 
-class AuraSyncEngine:
+class TimeHoldEngine:
     
     # Base percentages by service duration
     BASE_PERCENTAGES = {
