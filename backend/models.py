@@ -34,6 +34,7 @@ class Master(MongoModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     email: EmailStr
     name: str
+    password_hash: Optional[str] = None  # Hashed password for auth
     phone: Optional[str] = None
     specialty: Optional[str] = None
     bio: Optional[str] = None
@@ -50,9 +51,30 @@ class Master(MongoModel):
 class MasterCreate(BaseModel):
     email: EmailStr
     name: str
+    password: str  # Plain password, will be hashed
     phone: Optional[str] = None
     specialty: Optional[str] = None
     booking_slug: str
+
+class MasterLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class MasterResponse(BaseModel):
+    id: str
+    email: EmailStr
+    name: str
+    phone: Optional[str] = None
+    specialty: Optional[str] = None
+    bio: Optional[str] = None
+    photo_url: Optional[str] = None
+    location: Optional[str] = None
+    booking_slug: str
+    stripe_connect_id: Optional[str] = None
+    telegram_chat_id: Optional[str] = None
+    settings: dict = Field(default_factory=dict)
+    created_at: datetime
+    updated_at: datetime
 
 # Service
 class Service(MongoModel):
