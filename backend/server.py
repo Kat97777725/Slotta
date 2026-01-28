@@ -715,6 +715,18 @@ async def get_master_transactions(master_id: str, limit: int = 50, offset: int =
 # ============================================================================
 
 @api_router.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {
+        "status": "healthy",
+        "timestamp": datetime.utcnow().isoformat(),
+        "services": {
+            "email": email_service.enabled,
+            "telegram": telegram_service.enabled,
+            "stripe": stripe_service.enabled,
+            "google_calendar": google_calendar_service.enabled
+        }
+    }
 
 # ============================================================================
 # MESSAGING ENDPOINTS
