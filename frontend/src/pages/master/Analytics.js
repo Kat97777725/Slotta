@@ -1,15 +1,47 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { MasterLayout } from './Dashboard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { analyticsAPI, authAPI } from '@/lib/api';
 import { TrendingUp, TrendingDown, Shield, Clock, DollarSign, Users, AlertTriangle } from 'lucide-react';
 
 const Analytics = () => {
+  const [loading, setLoading] = useState(true);
+  const [analytics, setAnalytics] = useState({
+    total_bookings: 0,
+    completed_bookings: 0,
+    no_shows: 0,
+    no_show_rate: 0,
+    time_protected_eur: 0,
+    wallet_balance: 0,
+    avg_slotta: 0
+  });
+  const master = authAPI.getMaster();
+  const masterId = master?.id;
+
+  useEffect(() => {
+    if (masterId) {
+      loadAnalytics();
+    }
+  }, [masterId]);
+
+  const loadAnalytics = async () => {
+    try {
+      setLoading(true);
+      const response = await analyticsAPI.getMasterAnalytics(masterId);
+      setAnalytics(response.data);
+    } catch (error) {
+      console.error('Failed to load analytics:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const stats = [
-    { label: 'Time Protected', value: '€2,450', change: '+12%', trend: 'up', icon: Shield },
-    { label: 'No-Shows Avoided', value: '12', change: '-3', trend: 'down', icon: AlertTriangle },
-    { label: 'Avg Slotta', value: '€35', change: '+€5', trend: 'up', icon: DollarSign },
-    { label: 'Active Clients', value: '48', change: '+8', trend: 'up', icon: Users },
+    { label: 'Time Protected', value: `€${analytics.time_protected_eur}`, change: '+12%', trend: 'up', icon: Shield },
+    { label: 'No-Shows', value: analytics.no_shows.toString(), change: `${analytics.no_show_rate.toFixed(1)}%`, trend: analytics.no_shows > 0 ? 'down' : 'up', icon: AlertTriangle },
+    { label: 'Avg Slotta', value: `€${analytics.avg_slotta.toFixed(0)}`, change: '', trend: 'up', icon: DollarSign },
+    { label: 'Total Bookings', value: analytics.total_bookings.toString(), change: '', trend: 'up', icon: Users },
   ];
 
   const monthlyData = [

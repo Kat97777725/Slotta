@@ -1,28 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MasterLayout } from './Dashboard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { mastersAPI } from '@/lib/api';
+import { mastersAPI, authAPI } from '@/lib/api';
 import { User, Bell, Clock, Link as LinkIcon, CreditCard, Shield, Save } from 'lucide-react';
 
-const MASTER_ID = 'demo-master-123';
-
 const Settings = () => {
-  const [bookingLink] = useState('slotta.app/sophiabrown');
+  const master = authAPI.getMaster();
+  const masterId = master?.id;
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState({
-    name: 'Sophia Brown',
-    email: 'sophia.brown@email.com',
-    phone: '+44 7700 900000',
-    specialty: 'Hair Stylist & Colorist',
-    bio: 'Specializing in balayage, color correction, and precision cuts. 10+ years experience.'
+    name: master?.name || '',
+    email: master?.email || '',
+    phone: master?.phone || '',
+    specialty: master?.specialty || '',
+    bio: master?.bio || ''
   });
+  const bookingLink = master?.booking_slug ? `slotta.app/${master.booking_slug}` : '';
 
   const handleSaveProfile = async () => {
     try {
       setLoading(true);
-      await mastersAPI.update(MASTER_ID, profileData);
+      const response = await mastersAPI.update(masterId, profileData);
+      // Update local storage with new data
+      authAPI.setMaster({ ...master, ...profileData });
       alert('✅ Profile updated successfully!');
     } catch (error) {
       console.error('Failed to update profile:', error);
