@@ -143,6 +143,16 @@ export const analyticsAPI = {
 };
 
 // =============================================================================
+// WALLET / TRANSACTIONS
+// =============================================================================
+
+export const walletAPI = {
+  getWallet: (masterId) => api.get(`/wallet/master/${masterId}`),
+  getTransactions: (masterId, limit = 50, offset = 0) => 
+    api.get(`/transactions/master/${masterId}`, { params: { limit, offset } }),
+};
+
+// =============================================================================
 // HEALTH CHECK
 // =============================================================================
 
