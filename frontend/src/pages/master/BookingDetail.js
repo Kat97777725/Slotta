@@ -61,6 +61,33 @@ const BookingDetail = () => {
   const handleComplete = () => {
     alert('Booking marked as completed!');
     navigate('/master/bookings');
+
+  const handleSendMessage = async () => {
+    if (!messageText.trim()) {
+      alert('Please enter a message');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await messagesAPI.sendToClient({
+        master_id: MASTER_ID,
+        client_id: booking.client.id || 'demo-client-123',
+        booking_id: id,
+        message: messageText
+      });
+      
+      alert('✅ Message sent successfully!');
+      setShowMessageModal(false);
+      setMessageText('');
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      alert('❌ Failed to send message. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   };
 
   const handleNoShow = () => {
