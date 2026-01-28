@@ -76,11 +76,15 @@ const Analytics = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <stat.icon className="w-8 h-8 text-purple-600" />
-                <Badge variant={stat.trend === 'up' ? 'success' : 'warning'}>
-                  {stat.change}
-                </Badge>
+                {stat.change && (
+                  <Badge variant={stat.trend === 'up' ? 'success' : 'warning'}>
+                    {stat.change}
+                  </Badge>
+                )}
               </div>
-              <div className="text-3xl font-bold mb-1" data-testid={`stat-${idx}`}>{stat.value}</div>
+              <div className="text-3xl font-bold mb-1" data-testid={`stat-${idx}`}>
+                {loading ? '...' : stat.value}
+              </div>
               <div className="text-sm text-gray-600">{stat.label}</div>
             </CardContent>
           </Card>
