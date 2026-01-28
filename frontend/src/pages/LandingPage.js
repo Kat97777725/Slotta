@@ -386,7 +386,7 @@ const LandingPage = () => {
                 <span className="text-xl font-bold">AuraSync</span>
               </div>
               <p className="text-gray-400 text-sm">
-                Protect your time. Without punishing clients.
+                AI-powered smart scheduling. Fair protection for professionals.
               </p>
             </div>
             <div>
