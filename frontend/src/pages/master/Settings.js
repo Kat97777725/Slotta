@@ -45,7 +45,8 @@ const Settings = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
               <input
                 type="text"
-                defaultValue="Sophia Brown"
+                value={profileData.name}
+                onChange={(e) => setProfileData({...profileData, name: e.target.value})}
                 className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
               />
             </div>
@@ -53,7 +54,8 @@ const Settings = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
               <input
                 type="email"
-                defaultValue="sophia.brown@email.com"
+                value={profileData.email}
+                onChange={(e) => setProfileData({...profileData, email: e.target.value})}
                 className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
               />
             </div>
@@ -61,7 +63,8 @@ const Settings = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
               <input
                 type="tel"
-                defaultValue="+44 7700 900000"
+                value={profileData.phone}
+                onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
                 className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
               />
             </div>
@@ -69,7 +72,8 @@ const Settings = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">Specialty</label>
               <input
                 type="text"
-                defaultValue="Hair Stylist & Colorist"
+                value={profileData.specialty}
+                onChange={(e) => setProfileData({...profileData, specialty: e.target.value})}
                 className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
               />
             </div>
@@ -77,14 +81,15 @@ const Settings = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
               <textarea
                 rows="3"
-                defaultValue="Specializing in balayage, color correction, and precision cuts. 10+ years experience."
+                value={profileData.bio}
+                onChange={(e) => setProfileData({...profileData, bio: e.target.value})}
                 className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
               ></textarea>
             </div>
           </div>
-          <Button className="mt-6">
+          <Button className="mt-6" onClick={handleSaveProfile} disabled={loading} data-testid="save-profile-btn">
             <Save className="w-4 h-4 mr-2" />
-            Save Changes
+            {loading ? 'Saving...' : 'Save Changes'}
           </Button>
         </CardContent>
       </Card>
