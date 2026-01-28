@@ -1,56 +1,258 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { Clock, MapPin, Star, Shield, CheckCircle, Calendar, Info } from 'lucide-react';
+import { Clock, MapPin, Star, Shield, CheckCircle, Calendar, Info, Loader2, AlertCircle } from 'lucide-react';
+import { mastersAPI, servicesAPI, bookingsAPI } from '@/lib/api';
+
+// Initialize Stripe
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
+
+// Stripe Card Form Component
+const StripeCardForm = ({ onSubmit, loading, slottaAmount, masterName }) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [error, setError] = useState(null);
+  const [processing, setProcessing] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!stripe || !elements) return;
+    
+    setProcessing(true);
+    setError(null);
+
+    const cardElement = elements.getElement(CardElement);
+    
+    try {
+      const { error: stripeError, paymentMethod } = await stripe.createPaymentMethod({
+        type: 'card',
+        card: cardElement,
+      });
+
+      if (stripeError) {
+        setError(stripeError.message);
+        setProcessing(false);
+        return;
+      }
+
+      // Pass payment method ID to parent for booking creation
+      await onSubmit(paymentMethod.id);
+    } catch (err) {
+      setError(err.message || 'Payment failed');
+      setProcessing(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <div className="border rounded-lg p-6 mb-6">
+        <h3 className="font-semibold mb-4">Payment Information</h3>
+        <div className="p-4 border rounded-lg bg-white">
+          <CardElement
+            options={{
+              style: {
+                base: {
+                  fontSize: '16px',
+                  color: '#424770',
+                  '::placeholder': {
+                    color: '#aab7c4',
+                  },
+                },
+                invalid: {
+                  color: '#9e2146',
+                },
+              },
+            }}
+          />
+        </div>
+        {error && (
+          <div className="mt-3 flex items-center space-x-2 text-red-600 text-sm">
+            <AlertCircle className="w-4 h-4" />
+            <span>{error}</span>
+          </div>
+        )}
+        <p className="text-xs text-gray-500 mt-3">
+          Your card will be authorized for €{slottaAmount}. This is a hold, not a charge.
+        </p>
+      </div>
+
+      <Button
+        type="submit"
+        className="w-full py-3"
+        disabled={!stripe || processing || loading}
+        data-testid="authorize-payment-btn"
+      >
+        {processing || loading ? (
+          <>
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            Processing...
+          </>
+        ) : (
+          `Authorize €${slottaAmount}`
+        )}
+      </Button>
+    </form>
+  );
+};
 
 const BookingPage = () => {
   const { mastername } = useParams();
   const navigate = useNavigate();
+  const [master, setMaster] = useState(null);
+  const [services, setServices] = useState([]);
   const [selectedService, setSelectedService] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [showPayment, setShowPayment] = useState(false);
   const [bookingComplete, setBookingComplete] = useState(false);
+  const [bookingDetails, setBookingDetails] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [processingBooking, setProcessingBooking] = useState(false);
+  
+  // Client form data
+  const [clientData, setClientData] = useState({
+    name: '',
+    email: '',
+    phone: ''
+  });
 
-  // Mock master data
-  const master = {
-    name: 'Sophia Brown',
-    photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
-    specialty: 'Hair Stylist & Colorist',
-    rating: 4.9,
-    reviews: 127,
-    location: 'London, UK',
-    bio: 'Specializing in balayage, color correction, and precision cuts. 10+ years experience.',
+  // Generate available time slots for the next 7 days
+  const generateTimeSlots = () => {
+    const slots = [];
+    const today = new Date();
+    
+    for (let i = 1; i <= 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      
+      // Skip Sundays
+      if (date.getDay() === 0) continue;
+      
+      const daySlots = [];
+      const startHour = 9;
+      const endHour = 17;
+      
+      for (let hour = startHour; hour < endHour; hour++) {
+        daySlots.push(`${hour.toString().padStart(2, '0')}:00`);
+        if (hour < endHour - 1) {
+          daySlots.push(`${hour.toString().padStart(2, '0')}:30`);
+        }
+      }
+      
+      slots.push({
+        date: date.toISOString().split('T')[0],
+        slots: daySlots
+      });
+    }
+    
+    return slots;
   };
 
-  const services = [
-    { id: 1, name: 'Balayage Hair Color', duration: '3 hours', price: 150, timehold: 40 },
-    { id: 2, name: 'Women\'s Haircut & Style', duration: '1 hour', price: 60, timehold: 18 },
-    { id: 3, name: 'Color Correction', duration: '4 hours', price: 200, timehold: 60 },
-    { id: 4, name: 'Keratin Treatment', duration: '2.5 hours', price: 120, timehold: 35 },
-    { id: 5, name: 'Men\'s Haircut', duration: '45 min', price: 40, timehold: 12 },
-  ];
+  const timeSlots = generateTimeSlots();
 
-  const timeSlots = [
-    { date: '2025-02-15', slots: ['09:00', '10:30', '14:00', '16:30'] },
-    { date: '2025-02-16', slots: ['09:00', '11:00', '13:30', '15:00'] },
-    { date: '2025-02-17', slots: ['10:00', '14:00', '16:00'] },
-  ];
+  useEffect(() => {
+    loadMasterData();
+  }, [mastername]);
 
-  const handleBooking = () => {
-    if (!selectedService || !selectedSlot) return;
+  const loadMasterData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Load master by booking slug
+      const masterResponse = await mastersAPI.getBySlug(mastername);
+      const masterData = masterResponse.data;
+      setMaster(masterData);
+      
+      // Load master's services
+      const servicesResponse = await servicesAPI.getByMaster(masterData.id, true);
+      setServices(servicesResponse.data || []);
+      
+    } catch (err) {
+      console.error('Failed to load master:', err);
+      setError('Professional not found. Please check the booking link.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleContinueToPayment = () => {
+    if (!selectedService || !selectedSlot || !clientData.name || !clientData.email) {
+      alert('Please fill in all required fields');
+      return;
+    }
     setShowPayment(true);
   };
 
-  const handlePaymentAuth = () => {
-    // Simulate payment authorization
-    setTimeout(() => {
+  const handlePaymentSubmit = async (paymentMethodId) => {
+    try {
+      setProcessingBooking(true);
+      
+      const service = services.find(s => s.id === selectedService);
+      const [date, time] = selectedSlot.split(' ');
+      
+      // Create booking with payment
+      const bookingResponse = await bookingsAPI.createWithPayment({
+        master_id: master.id,
+        service_id: selectedService,
+        booking_date: new Date(`${date}T${time}:00`).toISOString(),
+        client_name: clientData.name,
+        client_email: clientData.email,
+        client_phone: clientData.phone,
+        payment_method_id: paymentMethodId
+      });
+      
+      setBookingDetails({
+        ...bookingResponse.data,
+        service_name: service.name,
+        master_name: master.name,
+        date: date,
+        time: time,
+        slotta_amount: service.base_slotta || Math.round(service.price * 0.3)
+      });
+      
       setBookingComplete(true);
-    }, 1000);
+      
+    } catch (err) {
+      console.error('Booking failed:', err);
+      alert(err.response?.data?.detail || 'Booking failed. Please try again.');
+    } finally {
+      setProcessingBooking(false);
+    }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-purple-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center p-6">
+        <Card className="max-w-md w-full p-8 text-center">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold mb-4">Oops!</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <Button onClick={() => navigate('/')}>Go Home</Button>
+        </Card>
+      </div>
+    );
+  }
+
   if (bookingComplete) {
+    const service = services.find(s => s.id === selectedService);
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center p-6">
         <Card className="max-w-2xl w-full p-8 text-center">
@@ -61,12 +263,12 @@ const BookingPage = () => {
             Booking Confirmed!
           </h2>
           <p className="text-gray-600 mb-6">
-            You're all set! A confirmation has been sent to your email.
+            You're all set! A confirmation email has been sent to {clientData.email}.
           </p>
           <div className="bg-gray-50 rounded-lg p-6 mb-6 text-left">
             <div className="flex justify-between mb-3">
               <span className="text-gray-600">Service</span>
-              <span className="font-semibold">{services.find(s => s.id === selectedService)?.name}</span>
+              <span className="font-semibold">{service?.name}</span>
             </div>
             <div className="flex justify-between mb-3">
               <span className="text-gray-600">Date & Time</span>
@@ -74,14 +276,20 @@ const BookingPage = () => {
             </div>
             <div className="flex justify-between mb-3">
               <span className="text-gray-600">With</span>
-              <span className="font-semibold">{master.name}</span>
+              <span className="font-semibold">{master?.name}</span>
             </div>
             <div className="flex justify-between pt-3 border-t">
               <span className="text-gray-600">Slotta Amount</span>
               <span className="font-semibold text-purple-600">
-                €{services.find(s => s.id === selectedService)?.timehold} (held, not charged)
+                €{service?.base_slotta || Math.round(service?.price * 0.3)} (held, not charged)
               </span>
             </div>
+          </div>
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <p className="text-sm text-green-700">
+              <strong>Important:</strong> Show up on time and your card hold will be released immediately.
+              If you need to reschedule, do so at least 24 hours before your appointment.
+            </p>
           </div>
           <div className="flex space-x-4">
             <Button variant="outline" className="flex-1" onClick={() => navigate('/')}>
@@ -98,9 +306,11 @@ const BookingPage = () => {
 
   if (showPayment) {
     const service = services.find(s => s.id === selectedService);
+    const slottaAmount = service?.base_slotta || Math.round(service?.price * 0.3);
+    
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-6">
-        <div className="max-w-2xl mx-auto pt-20">
+        <div className="max-w-2xl mx-auto pt-12">
           <Card className="p-8">
             <h2 className="text-2xl font-bold mb-6" data-testid="payment-title">Authorize Payment</h2>
             
@@ -110,7 +320,7 @@ const BookingPage = () => {
                 <div>
                   <h3 className="font-semibold text-purple-900 mb-2">How Slotta Works</h3>
                   <p className="text-sm text-purple-700 leading-relaxed">
-                    We'll authorize <strong>€{service?.timehold}</strong> on your card to protect {master.name}'s time.
+                    We'll authorize <strong>€{slottaAmount}</strong> on your card to protect {master?.name}'s time.
                     This amount is <strong>held, not charged</strong>. If you show up, it's released immediately.
                     If you can't make it, please reschedule before the deadline to avoid charges.
                   </p>
@@ -127,7 +337,7 @@ const BookingPage = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Duration</span>
-                  <span className="font-semibold">{service?.duration}</span>
+                  <span className="font-semibold">{service?.duration_minutes} minutes</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Date & Time</span>
@@ -138,8 +348,8 @@ const BookingPage = () => {
                   <span className="text-lg font-bold">€{service?.price}</span>
                 </div>
                 <div className="flex justify-between text-purple-600">
-                  <span className="font-medium">Slotta Amount</span>
-                  <span className="text-lg font-bold">€{service?.timehold}</span>
+                  <span className="font-medium">Slotta Amount (Hold)</span>
+                  <span className="text-lg font-bold">€{slottaAmount}</span>
                 </div>
                 <p className="text-xs text-gray-500 pt-2">
                   Full payment of €{service?.price} due at appointment. Slotta released when you arrive.
@@ -147,37 +357,22 @@ const BookingPage = () => {
               </div>
             </div>
 
-            <div className="border rounded-lg p-6 mb-6">
-              <h3 className="font-semibold mb-4">Payment Information</h3>
-              <div className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="Card Number"
-                  className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-                />
-                <div className="grid grid-cols-2 gap-4">
-                  <input
-                    type="text"
-                    placeholder="MM/YY"
-                    className="px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-                  />
-                  <input
-                    type="text"
-                    placeholder="CVV"
-                    className="px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-                  />
-                </div>
-              </div>
-            </div>
+            <Elements stripe={stripePromise}>
+              <StripeCardForm
+                onSubmit={handlePaymentSubmit}
+                loading={processingBooking}
+                slottaAmount={slottaAmount}
+                masterName={master?.name}
+              />
+            </Elements>
 
-            <div className="flex space-x-4">
-              <Button variant="outline" className="flex-1" onClick={() => setShowPayment(false)}>
-                Back
-              </Button>
-              <Button className="flex-1" onClick={handlePaymentAuth} data-testid="authorize-payment-btn">
-                Authorize €{service?.timehold}
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              className="w-full mt-4"
+              onClick={() => setShowPayment(false)}
+            >
+              Back
+            </Button>
           </Card>
         </div>
       </div>
@@ -205,24 +400,21 @@ const BookingPage = () => {
         {/* Master Profile */}
         <Card className="mb-8 overflow-hidden">
           <div className="md:flex">
-            <div className="md:w-1/3">
-              <img src={master.photo} alt={master.name} className="w-full h-64 md:h-full object-cover" />
+            <div className="md:w-1/3 bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center p-8">
+              <div className="w-32 h-32 bg-purple-600 rounded-full flex items-center justify-center text-white text-4xl font-bold">
+                {master?.name?.split(' ').map(n => n[0]).join('') || '?'}
+              </div>
             </div>
             <div className="md:w-2/3 p-8">
-              <h1 className="text-3xl font-bold mb-2" data-testid="master-name">{master.name}</h1>
-              <p className="text-purple-600 font-medium mb-4">{master.specialty}</p>
-              <div className="flex items-center space-x-6 mb-4">
-                <div className="flex items-center space-x-1">
-                  <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                  <span className="font-semibold">{master.rating}</span>
-                  <span className="text-gray-500">({master.reviews} reviews)</span>
-                </div>
-                <div className="flex items-center space-x-1 text-gray-600">
+              <h1 className="text-3xl font-bold mb-2" data-testid="master-name">{master?.name}</h1>
+              <p className="text-purple-600 font-medium mb-4">{master?.specialty || 'Professional'}</p>
+              {master?.location && (
+                <div className="flex items-center space-x-1 text-gray-600 mb-4">
                   <MapPin className="w-4 h-4" />
                   <span>{master.location}</span>
                 </div>
-              </div>
-              <p className="text-gray-600 mb-4">{master.bio}</p>
+              )}
+              <p className="text-gray-600 mb-4">{master?.bio || 'Book your appointment with confidence.'}</p>
               <Badge variant="purple">
                 <Shield className="w-3 h-3 mr-1" />
                 Slotta Protected
@@ -235,40 +427,49 @@ const BookingPage = () => {
           {/* Services */}
           <div className="md:col-span-2 space-y-4">
             <h2 className="text-2xl font-bold mb-4" data-testid="services-title">Select a Service</h2>
-            {services.map((service) => (
-              <Card
-                key={service.id}
-                className={`p-6 cursor-pointer transition ${
-                  selectedService === service.id
-                    ? 'ring-2 ring-purple-600 bg-purple-50'
-                    : 'hover:shadow-lg'
-                }`}
-                onClick={() => setSelectedService(service.id)}
-                data-testid={`service-${service.id}`}
-              >
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold mb-2">{service.name}</h3>
-                    <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
-                      <div className="flex items-center space-x-1">
-                        <Clock className="w-4 h-4" />
-                        <span>{service.duration}</span>
-                      </div>
-                      <div className="font-semibold text-lg text-gray-900">€{service.price}</div>
-                    </div>
-                    <div className="inline-flex items-center space-x-2 bg-purple-100 px-3 py-1 rounded-full">
-                      <Shield className="w-3 h-3 text-purple-600" />
-                      <span className="text-xs font-medium text-purple-700">
-                        Slotta: €{service.timehold}
-                      </span>
-                    </div>
-                  </div>
-                  {selectedService === service.id && (
-                    <CheckCircle className="w-6 h-6 text-purple-600" />
-                  )}
-                </div>
+            {services.length === 0 ? (
+              <Card className="p-8 text-center text-gray-500">
+                No services available at the moment.
               </Card>
-            ))}
+            ) : (
+              services.map((service) => {
+                const slottaAmount = service.base_slotta || Math.round(service.price * 0.3);
+                return (
+                  <Card
+                    key={service.id}
+                    className={`p-6 cursor-pointer transition ${
+                      selectedService === service.id
+                        ? 'ring-2 ring-purple-600 bg-purple-50'
+                        : 'hover:shadow-lg'
+                    }`}
+                    onClick={() => setSelectedService(service.id)}
+                    data-testid={`service-${service.id}`}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold mb-2">{service.name}</h3>
+                        <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
+                          <div className="flex items-center space-x-1">
+                            <Clock className="w-4 h-4" />
+                            <span>{service.duration_minutes} min</span>
+                          </div>
+                          <div className="font-semibold text-lg text-gray-900">€{service.price}</div>
+                        </div>
+                        <div className="inline-flex items-center space-x-2 bg-purple-100 px-3 py-1 rounded-full">
+                          <Shield className="w-3 h-3 text-purple-600" />
+                          <span className="text-xs font-medium text-purple-700">
+                            Slotta: €{slottaAmount}
+                          </span>
+                        </div>
+                      </div>
+                      {selectedService === service.id && (
+                        <CheckCircle className="w-6 h-6 text-purple-600" />
+                      )}
+                    </div>
+                  </Card>
+                );
+              })
+            )}
 
             {/* Time Slots */}
             {selectedService && (
@@ -283,14 +484,14 @@ const BookingPage = () => {
                         day: 'numeric',
                       })}
                     </h3>
-                    <div className="grid grid-cols-4 gap-3">
+                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
                       {day.slots.map((slot) => {
                         const slotKey = `${day.date} ${slot}`;
                         return (
                           <button
                             key={slot}
                             onClick={() => setSelectedSlot(slotKey)}
-                            className={`px-4 py-2 rounded-lg border transition ${
+                            className={`px-3 py-2 rounded-lg border transition text-sm ${
                               selectedSlot === slotKey
                                 ? 'bg-purple-600 text-white border-purple-600'
                                 : 'border-gray-300 hover:border-purple-600'
@@ -304,6 +505,58 @@ const BookingPage = () => {
                     </div>
                   </Card>
                 ))}
+              </div>
+            )}
+
+            {/* Client Information */}
+            {selectedSlot && (
+              <div className="mt-8">
+                <h2 className="text-2xl font-bold mb-4">Your Information</h2>
+                <Card className="p-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Full Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={clientData.name}
+                        onChange={(e) => setClientData({ ...clientData, name: e.target.value })}
+                        className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                        placeholder="John Doe"
+                        required
+                        data-testid="client-name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Email *
+                      </label>
+                      <input
+                        type="email"
+                        value={clientData.email}
+                        onChange={(e) => setClientData({ ...clientData, email: e.target.value })}
+                        className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                        placeholder="john@example.com"
+                        required
+                        data-testid="client-email"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Phone (optional)
+                      </label>
+                      <input
+                        type="tel"
+                        value={clientData.phone}
+                        onChange={(e) => setClientData({ ...clientData, phone: e.target.value })}
+                        className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                        placeholder="+44 7700 900000"
+                        data-testid="client-phone"
+                      />
+                    </div>
+                  </div>
+                </Card>
               </div>
             )}
           </div>
@@ -336,9 +589,10 @@ const BookingPage = () => {
                       </span>
                     </div>
                     <div className="flex justify-between text-purple-600">
-                      <span className="font-medium">Slotta</span>
+                      <span className="font-medium">Slotta (Hold)</span>
                       <span className="font-bold">
-                        €{services.find(s => s.id === selectedService)?.timehold}
+                        €{services.find(s => s.id === selectedService)?.base_slotta || 
+                          Math.round(services.find(s => s.id === selectedService)?.price * 0.3)}
                       </span>
                     </div>
                   </div>
@@ -352,8 +606,8 @@ const BookingPage = () => {
                   </div>
                   <Button
                     className="w-full"
-                    disabled={!selectedService || !selectedSlot}
-                    onClick={handleBooking}
+                    disabled={!selectedService || !selectedSlot || !clientData.name || !clientData.email}
+                    onClick={handleContinueToPayment}
                     data-testid="continue-booking-btn"
                   >
                     Continue to Payment
