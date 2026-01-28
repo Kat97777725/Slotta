@@ -10,7 +10,7 @@ This module calculates the fair Slotta amount based on:
 from datetime import datetime
 from typing import Optional
 
-class TimeHoldEngine:
+class SlottaEngine:
     
     # Base percentages by service duration
     BASE_PERCENTAGES = {
