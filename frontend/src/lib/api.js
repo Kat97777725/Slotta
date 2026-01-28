@@ -107,13 +107,17 @@ export const clientsAPI = {
 
 export const bookingsAPI = {
   create: (data) => api.post('/bookings', data),
+  createWithPayment: (data) => api.post('/bookings/with-payment', data),
   getById: (id) => api.get(`/bookings/${id}`),
   getByMaster: (masterId, status = null) => 
     api.get(`/bookings/master/${masterId}`, { params: { status } }),
   getByClient: (clientId) => api.get(`/bookings/client/${clientId}`),
+  getByClientEmail: (email) => api.get(`/bookings/client/email/${email}`),
   complete: (id) => api.put(`/bookings/${id}/complete`),
   noShow: (id) => api.put(`/bookings/${id}/no-show`),
   update: (id, data) => api.put(`/bookings/${id}`, data),
+  cancel: (id) => api.put(`/bookings/${id}/cancel`),
+  reschedule: (id, newDate) => api.put(`/bookings/${id}/reschedule`, { new_date: newDate }),
 };
 
 // =============================================================================
