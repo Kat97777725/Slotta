@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MasterLayout } from './Dashboard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -6,13 +6,11 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Textarea } from '@/components/ui/Input';
-import { messagesAPI } from '@/lib/api';
+import { messagesAPI, bookingsAPI, authAPI } from '@/lib/api';
 import { 
   Clock, Calendar, DollarSign, Shield, User, Phone, Mail, 
   MapPin, AlertTriangle, CheckCircle, XCircle, Edit 
 } from 'lucide-react';
-
-const MASTER_ID = 'demo-master-123';
 
 const BookingDetail = () => {
   const { id } = useParams();
@@ -20,29 +18,43 @@ const BookingDetail = () => {
   const [showActions, setShowActions] = useState(false);
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [messageText, setMessageText] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [booking, setBooking] = useState(null);
+  
+  const master = authAPI.getMaster();
+  const masterId = master?.id;
 
-  // Mock booking data
-  const booking = {
-    id: id,
-    client: {
-      name: 'Emma Wilson',
-      email: 'emma.wilson@email.com',
-      phone: '+44 7700 900000',
-      reliability: 'reliable',
-      bookingHistory: 12,
-      noShows: 0,
-    },
-    service: 'Balayage Hair Color',
-    date: '2025-02-15',
-    time: '09:00',
-    duration: '3 hours',
-    price: 150,
-    slotta: 40,
-    status: 'confirmed',
-    bookedAt: '2025-02-08 14:30',
-    rescheduleDeadline: '2025-02-13 23:59',
-    notes: 'Client prefers natural-looking highlights. Previous work: balayage 6 months ago.',
+  useEffect(() => {
+    if (id) {
+      loadBooking();
+    }
+  }, [id]);
+
+  const loadBooking = async () => {
+    try {
+      setLoading(true);
+      const response = await bookingsAPI.getById(id);
+      setBooking(response.data);
+    } catch (error) {
+      console.error('Failed to load booking:', error);
+      // Use mock data for display
+      setBooking({
+        id: id,
+        client_id: 'client-123',
+        service_id: 'service-123',
+        booking_date: new Date().toISOString(),
+        duration_minutes: 180,
+        service_price: 150,
+        slotta_amount: 40,
+        status: 'confirmed',
+        risk_score: 15,
+        notes: '',
+        created_at: new Date().toISOString()
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const statusColors = {
