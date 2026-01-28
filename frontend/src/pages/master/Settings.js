@@ -3,10 +3,34 @@ import { MasterLayout } from './Dashboard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { mastersAPI } from '@/lib/api';
 import { User, Bell, Clock, Link as LinkIcon, CreditCard, Shield, Save } from 'lucide-react';
 
+const MASTER_ID = 'demo-master-123';
+
 const Settings = () => {
-  const [bookingLink] = useState('slotta.com/sophiabrown');
+  const [bookingLink] = useState('slotta.app/sophiabrown');
+  const [loading, setLoading] = useState(false);
+  const [profileData, setProfileData] = useState({
+    name: 'Sophia Brown',
+    email: 'sophia.brown@email.com',
+    phone: '+44 7700 900000',
+    specialty: 'Hair Stylist & Colorist',
+    bio: 'Specializing in balayage, color correction, and precision cuts. 10+ years experience.'
+  });
+
+  const handleSaveProfile = async () => {
+    try {
+      setLoading(true);
+      await mastersAPI.update(MASTER_ID, profileData);
+      alert('✅ Profile updated successfully!');
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      alert('❌ Failed to update profile. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <MasterLayout active="settings" title="Settings">
