@@ -1,12 +1,24 @@
 import React, { useState } from 'react';
 import { MasterLayout } from './Dashboard';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
+import { Modal } from '@/components/ui/Modal';
+import { Input } from '@/components/ui/Input';
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { calendarAPI } from '@/lib/api';
+
+const MASTER_ID = 'demo-master-123';
 
 const Calendar = () => {
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 1, 15)); // Feb 15, 2025
-  const [view, setView] = useState('week'); // week or day
+  const [currentDate, setCurrentDate] = useState(new Date(2025, 1, 15));
+  const [showBlockModal, setShowBlockModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [blockForm, setBlockForm] = useState({
+    date: '',
+    start_time: '09:00',
+    end_time: '17:00',
+    reason: ''
+  });
 
   const bookings = [
     { id: 1, client: 'Emma Wilson', service: 'Balayage', date: '2025-02-15', start: '09:00', end: '12:00', color: 'purple' },
@@ -15,12 +27,12 @@ const Calendar = () => {
     { id: 4, client: 'Sophie Taylor', service: 'Keratin', date: '2025-02-16', start: '10:00', end: '12:30', color: 'pink' },
   ];
 
-  const hours = Array.from({ length: 13 }, (_, i) => i + 8); // 8 AM to 8 PM
+  const hours = Array.from({ length: 13 }, (_, i) => i + 8);
 
   const getWeekDays = () => {
     const days = [];
     const start = new Date(currentDate);
-    start.setDate(start.getDate() - start.getDay() + 1); // Monday
+    start.setDate(start.getDate() - start.getDay() + 1);
     for (let i = 0; i < 7; i++) {
       const day = new Date(start);
       day.setDate(start.getDate() + i);
@@ -31,9 +43,32 @@ const Calendar = () => {
 
   const weekDays = getWeekDays();
 
+  const handleBlockTime = async () => {
+    try {
+      setLoading(true);
+      const startDateTime = new Date(`${blockForm.date}T${blockForm.start_time}:00`);
+      const endDateTime = new Date(`${blockForm.date}T${blockForm.end_time}:00`);
+      
+      await calendarAPI.createBlock({
+        master_id: MASTER_ID,
+        start_datetime: startDateTime.toISOString(),
+        end_datetime: endDateTime.toISOString(),
+        reason: blockForm.reason
+      });
+      
+      alert('✅ Time blocked successfully!');
+      setShowBlockModal(false);
+      setBlockForm({ date: '', start_time: '09:00', end_time: '17:00', reason: '' });
+    } catch (error) {
+      console.error('Failed to block time:', error);
+      alert('❌ Failed to block time. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <MasterLayout active="calendar" title="Calendar">
-      {/* Header Controls */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
@@ -56,47 +91,28 @@ const Calendar = () => {
             </Button>
           </div>
           <h2 className="text-xl font-semibold">
-            {currentDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
+            {currentDate.toLocaleString('en-GB', { month: 'long', year: 'numeric' })}
           </h2>
         </div>
-        <div className="flex items-center space-x-3">
-          <div className="flex items-center space-x-2">
-            <Button variant={view === 'week' ? 'default' : 'outline'} size="sm" onClick={() => setView('week')}>
-              Week
-            </Button>
-            <Button variant={view === 'day' ? 'default' : 'outline'} size="sm" onClick={() => setView('day')}>
-              Day
-            </Button>
-          </div>
-          <Button size="sm">
-            <Plus className="w-4 h-4 mr-2" />
-            Block Time
-          </Button>
-        </div>
+        <Button size="sm" onClick={() => setShowBlockModal(true)} data-testid="block-time-btn">
+          <Plus className="w-4 h-4 mr-2" />
+          Block Time
+        </Button>
       </div>
 
-      {/* Calendar Grid */}
       <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            {/* Week Header */}
             <div className="grid grid-cols-8 border-b bg-gray-50">
               <div className="p-4 border-r text-sm text-gray-500">Time</div>
               {weekDays.map((day, idx) => {
                 const isToday = day.toDateString() === new Date().toDateString();
                 return (
-                  <div
-                    key={idx}
-                    className={`p-4 border-r text-center ${
-                      isToday ? 'bg-purple-50' : ''
-                    }`}
-                  >
+                  <div key={idx} className={`p-4 border-r text-center ${isToday ? 'bg-purple-50' : ''}`}>
                     <div className="text-sm text-gray-500">
                       {day.toLocaleDateString('en-GB', { weekday: 'short' })}
                     </div>
-                    <div className={`text-lg font-semibold ${
-                      isToday ? 'text-purple-600' : ''
-                    }`}>
+                    <div className={`text-lg font-semibold ${isToday ? 'text-purple-600' : ''}`}>
                       {day.getDate()}
                     </div>
                   </div>
@@ -104,13 +120,10 @@ const Calendar = () => {
               })}
             </div>
 
-            {/* Time Slots */}
             <div className="grid grid-cols-8">
               {hours.map((hour) => (
                 <React.Fragment key={hour}>
-                  <div className="p-4 border-r border-b text-sm text-gray-500">
-                    {hour}:00
-                  </div>
+                  <div className="p-4 border-r border-b text-sm text-gray-500">{hour}:00</div>
                   {weekDays.map((day, dayIdx) => {
                     const dateStr = day.toISOString().split('T')[0];
                     const dayBookings = bookings.filter(b => b.date === dateStr);
@@ -120,17 +133,10 @@ const Calendar = () => {
                     });
 
                     return (
-                      <div
-                        key={dayIdx}
-                        className="border-r border-b p-2 min-h-[80px] hover:bg-gray-50 cursor-pointer relative"
-                        data-testid={`slot-${dateStr}-${hour}`}
-                      >
+                      <div key={dayIdx} className="border-r border-b p-2 min-h-[80px] hover:bg-gray-50 cursor-pointer relative" data-testid={`slot-${dateStr}-${hour}`}>
                         {hourBookings.map((booking) => (
-                          <div
-                            key={booking.id}
-                            className={`bg-${booking.color}-100 border-l-4 border-${booking.color}-600 rounded p-2 mb-2 text-xs`}
-                          >
-                            <div className="font-semibold text-${booking.color}-900">{booking.start}</div>
+                          <div key={booking.id} className={`bg-${booking.color}-100 border-l-4 border-${booking.color}-600 rounded p-2 mb-2 text-xs`}>
+                            <div className="font-semibold">{booking.start}</div>
                             <div className="font-medium">{booking.client}</div>
                             <div className="text-gray-600">{booking.service}</div>
                           </div>
@@ -145,7 +151,54 @@ const Calendar = () => {
         </CardContent>
       </Card>
 
-      {/* Quick Stats */}
+      {/* Block Time Modal */}
+      <Modal isOpen={showBlockModal} onClose={() => setShowBlockModal(false)} title="Block Time">
+        <div className="space-y-4">
+          <p className="text-gray-600 text-sm">Block time on your calendar to prevent bookings during specific periods.</p>
+          
+          <Input
+            label="Date"
+            type="date"
+            value={blockForm.date}
+            onChange={(e) => setBlockForm({ ...blockForm, date: e.target.value })}
+            required
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Start Time"
+              type="time"
+              value={blockForm.start_time}
+              onChange={(e) => setBlockForm({ ...blockForm, start_time: e.target.value })}
+              required
+            />
+            <Input
+              label="End Time"
+              type="time"
+              value={blockForm.end_time}
+              onChange={(e) => setBlockForm({ ...blockForm, end_time: e.target.value })}
+              required
+            />
+          </div>
+
+          <Input
+            label="Reason (optional)"
+            placeholder="e.g., Lunch break, Personal appointment"
+            value={blockForm.reason}
+            onChange={(e) => setBlockForm({ ...blockForm, reason: e.target.value })}
+          />
+
+          <div className="flex space-x-4 pt-4">
+            <Button variant="outline" onClick={() => setShowBlockModal(false)} className="flex-1">
+              Cancel
+            </Button>
+            <Button onClick={handleBlockTime} className="flex-1" disabled={loading || !blockForm.date} data-testid="submit-block-time">
+              {loading ? 'Blocking...' : 'Block Time'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
       <div className="grid grid-cols-4 gap-6 mt-6">
         {[
           { label: 'This Week', value: '18 bookings' },
