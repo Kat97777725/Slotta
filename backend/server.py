@@ -19,7 +19,7 @@ from models import (
     Client, ClientCreate, Booking, BookingCreate,
     Transaction, TransactionCreate, BookingStatus, ClientReliability
 )
-from aurasync_engine import AuraSyncEngine
+from aurasync_engine import TimeHoldEngine
 from services import email_service, telegram_service, stripe_service, google_calendar_service
 
 # Configure logging
