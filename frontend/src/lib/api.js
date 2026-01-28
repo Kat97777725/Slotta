@@ -27,11 +27,44 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Unauthorized - clear token and redirect to login
       localStorage.removeItem('slotta_token');
-      window.location.href = '/login';
+      localStorage.removeItem('slotta_master');
+      // Only redirect if not already on login/register page
+      if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
 );
+
+// =============================================================================
+// AUTHENTICATION
+// =============================================================================
+
+export const authAPI = {
+  register: (data) => api.post('/auth/register', data),
+  login: (data) => api.post('/auth/login', data),
+  getMe: () => api.get('/auth/me'),
+  
+  // Helper methods
+  setToken: (token) => {
+    localStorage.setItem('slotta_token', token);
+  },
+  setMaster: (master) => {
+    localStorage.setItem('slotta_master', JSON.stringify(master));
+  },
+  getToken: () => localStorage.getItem('slotta_token'),
+  getMaster: () => {
+    const master = localStorage.getItem('slotta_master');
+    return master ? JSON.parse(master) : null;
+  },
+  isAuthenticated: () => !!localStorage.getItem('slotta_token'),
+  logout: () => {
+    localStorage.removeItem('slotta_token');
+    localStorage.removeItem('slotta_master');
+    window.location.href = '/login';
+  }
+};
 
 // =============================================================================
 // MASTERS
