@@ -1,18 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MasterLayout } from './Dashboard';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
-import { calendarAPI } from '@/lib/api';
-
-const MASTER_ID = 'demo-master-123';
+import { calendarAPI, bookingsAPI, authAPI } from '@/lib/api';
 
 const Calendar = () => {
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 1, 15));
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [bookings, setBookings] = useState([]);
+  const [blocks, setBlocks] = useState([]);
+  const master = authAPI.getMaster();
+  const masterId = master?.id;
+  
   const [blockForm, setBlockForm] = useState({
     date: '',
     start_time: '09:00',
@@ -20,12 +23,24 @@ const Calendar = () => {
     reason: ''
   });
 
-  const bookings = [
-    { id: 1, client: 'Emma Wilson', service: 'Balayage', date: '2025-02-15', start: '09:00', end: '12:00', color: 'purple' },
-    { id: 2, client: 'Olivia Smith', service: 'Haircut', date: '2025-02-15', start: '11:00', end: '12:00', color: 'blue' },
-    { id: 3, client: 'James Parker', service: 'Men\'s Cut', date: '2025-02-15', start: '14:30', end: '15:15', color: 'green' },
-    { id: 4, client: 'Sophie Taylor', service: 'Keratin', date: '2025-02-16', start: '10:00', end: '12:30', color: 'pink' },
-  ];
+  useEffect(() => {
+    if (masterId) {
+      loadCalendarData();
+    }
+  }, [masterId, currentDate]);
+
+  const loadCalendarData = async () => {
+    try {
+      const [bookingsRes, blocksRes] = await Promise.all([
+        bookingsAPI.getByMaster(masterId),
+        calendarAPI.getBlocksByMaster(masterId)
+      ]);
+      setBookings(bookingsRes.data || []);
+      setBlocks(blocksRes.data || []);
+    } catch (error) {
+      console.error('Failed to load calendar data:', error);
+    }
+  };
 
   const hours = Array.from({ length: 13 }, (_, i) => i + 8);
 
@@ -50,7 +65,7 @@ const Calendar = () => {
       const endDateTime = new Date(`${blockForm.date}T${blockForm.end_time}:00`);
       
       await calendarAPI.createBlock({
-        master_id: MASTER_ID,
+        master_id: masterId,
         start_datetime: startDateTime.toISOString(),
         end_datetime: endDateTime.toISOString(),
         reason: blockForm.reason
@@ -59,6 +74,7 @@ const Calendar = () => {
       alert('✅ Time blocked successfully!');
       setShowBlockModal(false);
       setBlockForm({ date: '', start_time: '09:00', end_time: '17:00', reason: '' });
+      loadCalendarData(); // Refresh data
     } catch (error) {
       console.error('Failed to block time:', error);
       alert('❌ Failed to block time. Please try again.');
