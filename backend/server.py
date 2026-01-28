@@ -353,6 +353,21 @@ async def get_client_by_email(email: str):
     
     return client
 
+@api_router.get("/clients/master/{master_id}", response_model=List[Client])
+async def get_master_clients(master_id: str):
+    """Get all clients who have booked with this master"""
+    
+    # Find all bookings for this master
+    bookings = await db.bookings.find({"master_id": master_id}, {"client_id": 1}).to_list(10000)
+    client_ids = list(set(b['client_id'] for b in bookings))
+    
+    if not client_ids:
+        return []
+    
+    # Get all clients
+    clients = await db.clients.find({"id": {"$in": client_ids}}, {"_id": 0}).to_list(1000)
+    return clients
+
 # ============================================================================
 # BOOKING ENDPOINTS  
 # ============================================================================
