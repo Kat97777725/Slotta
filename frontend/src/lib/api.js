@@ -83,11 +83,11 @@ export const mastersAPI = {
 
 export const servicesAPI = {
   create: (data) => api.post('/services', data),
-  getByMaster: (masterId, activeOnly = true) => 
-    api.get(`/services/master/${masterId}`, { params: { active_only: activeOnly } }),
-  getById: (id) => api.get(`/services/${id}`),
   update: (id, data) => api.put(`/services/${id}`, data),
   delete: (id) => api.delete(`/services/${id}`),
+  getById: (id) => api.get(`/services/${id}`),
+  getByMaster: (masterId, activeOnly = false) => 
+    api.get(`/services/master/${masterId}`, { params: { active_only: activeOnly } }),
 };
 
 // =============================================================================
