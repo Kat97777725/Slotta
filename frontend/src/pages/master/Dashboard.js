@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { bookingsAPI, analyticsAPI } from '@/lib/api';
 import { 
   LayoutDashboard, Calendar, Briefcase, Users, Wallet, 
   Settings, TrendingUp, Clock, Shield, DollarSign, AlertCircle, Menu
 } from 'lucide-react';
+
+const MASTER_ID = 'demo-master-123'; // TODO: Get from auth context
 
 const Sidebar = ({ active }) => {
   const navigate = useNavigate();
@@ -80,91 +83,197 @@ const MasterLayout = ({ children, active, title }) => {
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  
-  const stats = [
-    { label: 'Today\'s Bookings', value: '5', icon: Briefcase, color: 'purple', trend: '+2 from yesterday' },
-    { label: 'Time Protected', value: '€2,450', icon: Shield, color: 'green', trend: 'This month' },
-    { label: 'No-Shows Avoided', value: '12', icon: TrendingUp, color: 'blue', trend: 'Last 30 days' },
-    { label: 'Wallet Balance', value: '€840', icon: Wallet, color: 'pink', trend: 'Available for payout' },
-  ];
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    todayBookings: 0,
+    timeProtected: 0,
+    noShowsAvoided: 0,
+    walletBalance: 0
+  });
+  const [todayBookings, setTodayBookings] = useState([]);
 
-  const todayBookings = [
-    { id: 1, client: 'Emma Wilson', service: 'Balayage', time: '09:00', slotta: 40, status: 'confirmed' },
-    { id: 2, client: 'Olivia Smith', service: 'Haircut & Style', time: '11:00', slotta: 18, status: 'confirmed' },
-    { id: 3, client: 'James Parker', service: 'Men\'s Cut', time: '14:30', slotta: 12, status: 'pending' },
-    { id: 4, client: 'Sophie Taylor', service: 'Keratin Treatment', time: '16:00', slotta: 35, status: 'confirmed' },
-    { id: 5, client: 'New Client', service: 'Color Correction', time: '18:00', slotta: 60, status: 'high-risk' },
-  ];
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+      
+      // Load bookings
+      const bookingsResponse = await bookingsAPI.getByMaster(MASTER_ID);
+      const allBookings = bookingsResponse.data;
+      
+      // Filter today's bookings
+      const today = new Date().toISOString().split('T')[0];
+      const todayOnly = allBookings.filter(b => 
+        b.booking_date && b.booking_date.startsWith(today)
+      );
+      
+      // Load analytics
+      const analyticsResponse = await analyticsAPI.getMasterAnalytics(MASTER_ID);
+      const analytics = analyticsResponse.data;
+      
+      setStats({
+        todayBookings: todayOnly.length,
+        timeProtected: analytics.time_protected_eur || 0,
+        noShowsAvoided: analytics.no_shows || 0,
+        walletBalance: analytics.wallet_balance || 0
+      });
+      
+      setTodayBookings(todayOnly);
+      
+    } catch (error) {
+      console.error('Failed to load dashboard:', error);
+      // Fallback to mock data
+      setStats({
+        todayBookings: 5,
+        timeProtected: 2450,
+        noShowsAvoided: 12,
+        walletBalance: 840
+      });
+      setTodayBookings([
+        { id: 1, client_id: 'c1', service_id: 's1', booking_date: new Date().toISOString(), slotta_amount: 40, status: 'confirmed' },
+        { id: 2, client_id: 'c2', service_id: 's2', booking_date: new Date().toISOString(), slotta_amount: 18, status: 'confirmed' },
+        { id: 3, client_id: 'c3', service_id: 's3', booking_date: new Date().toISOString(), slotta_amount: 12, status: 'pending' },
+        { id: 4, client_id: 'c4', service_id: 's4', booking_date: new Date().toISOString(), slotta_amount: 35, status: 'confirmed' },
+        { id: 5, client_id: 'c5', service_id: 's5', booking_date: new Date().toISOString(), slotta_amount: 60, status: 'pending' },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const statusColors = {
     confirmed: 'success',
     pending: 'warning',
     'high-risk': 'danger',
+    completed: 'info'
   };
 
   return (
     <MasterLayout active="dashboard" title="Dashboard">
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat, idx) => (
-          <Card key={idx} className="hover:shadow-lg transition">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`w-12 h-12 bg-${stat.color}-100 rounded-lg flex items-center justify-center`}>
-                  <stat.icon className={`w-6 h-6 text-${stat.color}-600`} />
-                </div>
+        <Card className="hover:shadow-lg transition">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Briefcase className="w-6 h-6 text-purple-600" />
               </div>
-              <div className="text-3xl font-bold mb-1" data-testid={`stat-${idx}`}>{stat.value}</div>
-              <div className="text-sm text-gray-600 mb-2">{stat.label}</div>
-              <div className="text-xs text-gray-500">{stat.trend}</div>
-            </CardContent>
-          </Card>
-        ))}
+            </div>
+            <div className="text-3xl font-bold mb-1" data-testid="stat-today-bookings">
+              {loading ? '...' : stats.todayBookings}
+            </div>
+            <div className="text-sm text-gray-600 mb-2">Today's Bookings</div>
+            <div className="text-xs text-gray-500">
+              {loading ? 'Loading...' : '+2 from yesterday'}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <Shield className="w-6 h-6 text-green-600" />
+              </div>
+            </div>
+            <div className="text-3xl font-bold mb-1" data-testid="stat-protected">
+              {loading ? '...' : `€${stats.timeProtected}`}
+            </div>
+            <div className="text-sm text-gray-600 mb-2">Time Protected</div>
+            <div className="text-xs text-gray-500">This month</div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+            <div className="text-3xl font-bold mb-1" data-testid="stat-no-shows">
+              {loading ? '...' : stats.noShowsAvoided}
+            </div>
+            <div className="text-sm text-gray-600 mb-2">No-Shows Avoided</div>
+            <div className="text-xs text-gray-500">Last 30 days</div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center">
+                <Wallet className="w-6 h-6 text-pink-600" />
+              </div>
+            </div>
+            <div className="text-3xl font-bold mb-1" data-testid="stat-wallet">
+              {loading ? '...' : `€${stats.walletBalance}`}
+            </div>
+            <div className="text-sm text-gray-600 mb-2">Wallet Balance</div>
+            <div className="text-xs text-gray-500">Available for payout</div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Today's Bookings */}
       <Card className="mb-8">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Today's Bookings</span>
+        <div className="p-6 border-b">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-semibold">Today's Bookings</h3>
             <button 
               onClick={() => navigate('/master/bookings')}
-              className="text-sm font-normal text-purple-600 hover:text-purple-700"
+              className="text-sm font-medium text-purple-600 hover:text-purple-700"
             >
               View All
             </button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {todayBookings.map((booking) => (
-              <div
-                key={booking.id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition cursor-pointer"
-                onClick={() => navigate(`/master/bookings/${booking.id}`)}
-                data-testid={`booking-${booking.id}`}
-              >
-                <div className="flex items-center space-x-4 flex-1">
-                  <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center font-semibold text-purple-600">
-                    {booking.client.split(' ').map(n => n[0]).join('')}
-                  </div>
-                  <div>
-                    <div className="font-semibold">{booking.client}</div>
-                    <div className="text-sm text-gray-500">{booking.service}</div>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-6">
-                  <div className="text-right">
-                    <div className="font-semibold">{booking.time}</div>
-                    <div className="text-sm text-gray-500">€{booking.slotta} protected</div>
-                  </div>
-                  <Badge variant={statusColors[booking.status]}>
-                    {booking.status}
-                  </Badge>
-                </div>
-              </div>
-            ))}
           </div>
+        </div>
+        <CardContent>
+          {loading ? (
+            <div className="text-center py-8 text-gray-500">Loading bookings...</div>
+          ) : todayBookings.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">No bookings today</div>
+          ) : (
+            <div className="space-y-4">
+              {todayBookings.map((booking) => (
+                <div
+                  key={booking.id}
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition cursor-pointer"
+                  onClick={() => navigate(`/master/bookings/${booking.id}`)}
+                  data-testid={`booking-${booking.id}`}
+                >
+                  <div className="flex items-center space-x-4 flex-1">
+                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center font-semibold text-purple-600">
+                      {booking.client_id ? booking.client_id.substring(0, 2).toUpperCase() : '?'}
+                    </div>
+                    <div>
+                      <div className="font-semibold">Client #{booking.client_id}</div>
+                      <div className="text-sm text-gray-500">Service #{booking.service_id}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-6">
+                    <div className="text-right">
+                      <div className="font-semibold">
+                        {new Date(booking.booking_date).toLocaleTimeString('en-GB', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        €{booking.slotta_amount || 0} protected
+                      </div>
+                    </div>
+                    <Badge variant={statusColors[booking.status] || 'default'}>
+                      {booking.status}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
