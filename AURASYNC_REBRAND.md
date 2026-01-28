@@ -24,8 +24,8 @@
 - ✅ Service descriptions
 
 **New URLs:**
-- `aurasync.app/{mastername}` (booking links)
-- References changed from timehold.com → aurasync.app
+- `slotta.app/{mastername}` (booking links)
+- References changed from timehold.com → slotta.app
 
 **Tagline Changes:**
 - Old: "Protect Your Time. Without Punishing Clients."
@@ -39,9 +39,9 @@
 - ✅ API title: "Slotta API v1.0"
 - ✅ Startup messages
 - ✅ All log messages
-- ✅ Database name: `aurasync_db`
+- ✅ Database name: `slotta_db`
 - ✅ Engine class: `SlottaEngine`
-- ✅ File renamed: `timehold_engine.py` → `aurasync_engine.py`
+- ✅ File renamed: `timehold_engine.py` → `slotta_engine.py`
 - ✅ All comments and docstrings
 - ✅ Email templates
 - ✅ Notification messages
@@ -138,15 +138,15 @@ by holding client money fairly—without forcing full upfront payments.
 ## 🌐 DOMAIN RECOMMENDATIONS
 
 **Suggested Domains:**
-1. `aurasync.ai` ⭐ Best (AI focus)
-2. `aurasync.app` (App focus)
-3. `aurasync.io` (Tech focus)
-4. `getaurasync.com` (Marketing)
+1. `slotta.ai` ⭐ Best (AI focus)
+2. `slotta.app` (App focus)
+3. `slotta.io` (Tech focus)
+4. `getslotta.com` (Marketing)
 
 **Email:**
-- `hello@aurasync.ai`
-- `support@aurasync.ai`
-- `noreply@aurasync.ai`
+- `hello@slotta.ai`
+- `support@slotta.ai`
+- `noreply@slotta.ai`
 
 ---
 
@@ -307,9 +307,9 @@ Fair protection through intelligent scheduling
 - Slotta Connect (integrations)
 
 **Related Domains to Consider:**
-- getaurasync.com (marketing site)
-- aurasync.io (developer docs)
-- aurasyncapp.com (alternative)
+- getslotta.com (marketing site)
+- slotta.io (developer docs)
+- slottaapp.com (alternative)
 
 ---
 
@@ -336,7 +336,7 @@ Fair. Smart. Calm.
 
 **If launching soon:**
 1. ✅ Rebrand complete
-2. [ ] Get domain (aurasync.ai recommended)
+2. [ ] Get domain (slotta.ai recommended)
 3. [ ] Design logo
 4. [ ] Create favicon
 5. [ ] Set up email addresses

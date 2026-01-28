@@ -17,7 +17,7 @@ const ClientPortal = () => {
       date: '2025-02-15', 
       time: '09:00', 
       price: 150, 
-      aurasync: 40, 
+      slotta: 40, 
       status: 'confirmed',
       location: 'London, UK'
     },
@@ -28,7 +28,7 @@ const ClientPortal = () => {
       date: '2025-03-10', 
       time: '14:00', 
       price: 120, 
-      aurasync: 35, 
+      slotta: 35, 
       status: 'confirmed',
       location: 'London, UK'
     },
@@ -39,7 +39,7 @@ const ClientPortal = () => {
       date: '2025-01-20', 
       time: '11:00', 
       price: 60, 
-      aurasync: 18, 
+      slotta: 18, 
       status: 'completed',
       location: 'London, UK'
     },
@@ -164,7 +164,7 @@ const ClientPortal = () => {
                         <div>
                           <div className="text-sm text-gray-600">Service Price: €{booking.price}</div>
                           <div className="text-sm text-purple-600 font-medium">
-                            Slotta: €{booking.aurasync} (held, not charged)
+                            Slotta: €{booking.slotta} (held, not charged)
                           </div>
                         </div>
                         {booking.status === 'confirmed' && (

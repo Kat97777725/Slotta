@@ -19,7 +19,7 @@ from models import (
     Client, ClientCreate, Booking, BookingCreate,
     Transaction, TransactionCreate, BookingStatus, ClientReliability
 )
-from aurasync_engine import TimeHoldEngine
+from slotta_engine import TimeHoldEngine
 from services import email_service, telegram_service, stripe_service, google_calendar_service
 
 # Configure logging
@@ -86,19 +86,19 @@ async def create_service(service_input: ServiceCreate):
     """Create a new service"""
     
     # Calculate base Slotta
-    base_aurasync = TimeHoldEngine.calculate_base_aurasync(
+    base_slotta = TimeHoldEngine.calculate_base_slotta(
         service_input.price,
         service_input.duration_minutes
     )
     
     service = Service(
         **service_input.model_dump(),
-        base_aurasync=base_aurasync
+        base_slotta=base_slotta
     )
     
     await db.services.insert_one(service.model_dump())
     
-    logger.info(f"✅ Service created: {service.name} - €{service.price} (Slotta: €{service.base_aurasync})")
+    logger.info(f"✅ Service created: {service.name} - €{service.price} (Slotta: €{service.base_slotta})")
     return service
 
 @api_router.get("/services/master/{master_id}", response_model=List[Service])
@@ -180,7 +180,7 @@ async def create_booking(booking_input: BookingCreate):
         raise HTTPException(status_code=404, detail="Client not found")
     
     # Calculate Slotta
-    aurasync_amount = TimeHoldEngine.calculate_aurasync(
+    slotta_amount = TimeHoldEngine.calculate_slotta(
         price=service['price'],
         duration_minutes=service['duration_minutes'],
         client_reliability=client['reliability'],
@@ -204,7 +204,7 @@ async def create_booking(booking_input: BookingCreate):
         **booking_input.model_dump(),
         duration_minutes=service['duration_minutes'],
         service_price=service['price'],
-        aurasync_amount=aurasync_amount,
+        slotta_amount=slotta_amount,
         risk_score=risk_score,
         reschedule_deadline=reschedule_deadline
     )
@@ -228,7 +228,7 @@ async def create_booking(booking_input: BookingCreate):
         service_name=service['name'],
         booking_date=booking_input.booking_date.strftime("%A, %B %d, %Y"),
         booking_time=booking_input.booking_date.strftime("%I:%M %p"),
-        aurasync_amount=aurasync_amount
+        slotta_amount=slotta_amount
     )
     
     await email_service.send_master_new_booking(
@@ -250,7 +250,7 @@ async def create_booking(booking_input: BookingCreate):
             booking_time=booking_input.booking_date.strftime("%I:%M %p")
         )
     
-    logger.info(f"✅ Booking created: {client['name']} → {master['name']} (Slotta: €{aurasync_amount})")
+    logger.info(f"✅ Booking created: {client['name']} → {master['name']} (Slotta: €{slotta_amount})")
     return booking
 
 @api_router.get("/bookings/{booking_id}", response_model=Booking)
@@ -331,7 +331,7 @@ async def mark_booking_no_show(booking_id: str):
         raise HTTPException(status_code=404, detail="Booking not found")
     
     # Calculate split
-    split = TimeHoldEngine.calculate_no_show_split(booking['aurasync_amount'])
+    split = TimeHoldEngine.calculate_no_show_split(booking['slotta_amount'])
     
     # Update booking status
     await db.bookings.update_one(
@@ -365,7 +365,7 @@ async def mark_booking_no_show(booking_id: str):
     if booking.get('stripe_payment_intent_id'):
         await stripe_service.capture_payment(
             booking['stripe_payment_intent_id'],
-            booking['aurasync_amount']
+            booking['slotta_amount']
         )
     
     # Create transactions
@@ -429,7 +429,7 @@ async def get_master_analytics(master_id: str):
     completed = len([b for b in bookings if b['status'] == BookingStatus.COMPLETED])
     no_shows = len([b for b in bookings if b['status'] == BookingStatus.NO_SHOW])
     
-    total_aurasync_protected = sum(b.get('aurasync_amount', 0) for b in bookings)
+    total_slotta_protected = sum(b.get('slotta_amount', 0) for b in bookings)
     
     # Get transactions
     transactions = await db.transactions.find(
@@ -444,9 +444,9 @@ async def get_master_analytics(master_id: str):
         "completed_bookings": completed,
         "no_shows": no_shows,
         "no_show_rate": (no_shows / total_bookings * 100) if total_bookings > 0 else 0,
-        "time_protected_eur": total_aurasync_protected,
+        "time_protected_eur": total_slotta_protected,
         "wallet_balance": wallet_balance,
-        "avg_aurasync": total_aurasync_protected / total_bookings if total_bookings > 0 else 0
+        "avg_slotta": total_slotta_protected / total_bookings if total_bookings > 0 else 0
     }
 
 # ============================================================================

@@ -31,7 +31,7 @@ class TimeHoldEngine:
     MIN_AMOUNT = 10.0      # Minimum €10 for long services
     
     @classmethod
-    def calculate_base_aurasync(cls, price: float, duration_minutes: int) -> float:
+    def calculate_base_slotta(cls, price: float, duration_minutes: int) -> float:
         """Calculate base Slotta based on service price and duration"""
         
         if duration_minutes < 60:
@@ -44,7 +44,7 @@ class TimeHoldEngine:
         return price * percentage
     
     @classmethod
-    def calculate_aurasync(
+    def calculate_slotta(
         cls,
         price: float,
         duration_minutes: int,
@@ -57,7 +57,7 @@ class TimeHoldEngine:
         """Calculate final Slotta amount with all modifiers"""
         
         # Start with base
-        base = cls.calculate_base_aurasync(price, duration_minutes)
+        base = cls.calculate_base_slotta(price, duration_minutes)
         
         # Initialize modifier
         total_modifier = 0.0
@@ -93,14 +93,14 @@ class TimeHoldEngine:
         return round(final_amount, 2)
     
     @classmethod
-    def calculate_no_show_split(cls, aurasync_amount: float) -> dict:
+    def calculate_no_show_split(cls, slotta_amount: float) -> dict:
         """Calculate how Slotta is split on no-show
         
         Returns:
             dict: {'master_compensation': float, 'client_wallet_credit': float}
         """
-        master_portion = aurasync_amount * 0.625  # 62.5% to master
-        client_portion = aurasync_amount * 0.375  # 37.5% to client wallet
+        master_portion = slotta_amount * 0.625  # 62.5% to master
+        client_portion = slotta_amount * 0.375  # 37.5% to client wallet
         
         return {
             'master_compensation': round(master_portion, 2),

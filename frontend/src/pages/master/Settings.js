@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/Badge';
 import { User, Bell, Clock, Link as LinkIcon, CreditCard, Shield, Save } from 'lucide-react';
 
 const Settings = () => {
-  const [bookingLink] = useState('aurasync.com/sophiabrown');
+  const [bookingLink] = useState('slotta.com/sophiabrown');
 
   return (
     <MasterLayout active="settings" title="Settings">

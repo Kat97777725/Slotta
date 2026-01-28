@@ -34,7 +34,7 @@ Your Slotta backend is **fully functional** and running! All integration structu
 12. Add to `/app/backend/.env`:
     ```
     SENDGRID_API_KEY=SG.xxx...your_key_here
-    FROM_EMAIL=noreply@aurasync.com
+    FROM_EMAIL=noreply@slotta.com
     ```
 13. Verify sender email:
     - Go to **Settings > Sender Authentication**
@@ -66,7 +66,7 @@ curl http://localhost:8001/api/health
 3. Send `/newbot`
 4. Follow prompts:
    - Bot name: "Slotta Notifications"
-   - Username: "your_aurasync_bot" (must end in 'bot')
+   - Username: "your_slotta_bot" (must end in 'bot')
 5. **Copy the API token** (looks like: `1234567890:ABCdef...`)
 6. Add to `/app/backend/.env`:
     ```
@@ -228,19 +228,19 @@ Response shows which services are enabled:
 **Current content:** (database settings only)
 ```env
 MONGO_URL=mongodb://localhost:27017
-DB_NAME=aurasync_db
+DB_NAME=slotta_db
 CORS_ORIGINS=*
 ```
 
 **After adding keys:**
 ```env
 MONGO_URL=mongodb://localhost:27017
-DB_NAME=aurasync_db
+DB_NAME=slotta_db
 CORS_ORIGINS=*
 
 # SendGrid
 SENDGRID_API_KEY=SG.abc123...
-FROM_EMAIL=noreply@aurasync.com
+FROM_EMAIL=noreply@slotta.com
 
 # Telegram
 TELEGRAM_BOT_TOKEN=1234567890:ABCdef...

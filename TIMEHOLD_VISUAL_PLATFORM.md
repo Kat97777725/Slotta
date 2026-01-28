@@ -340,7 +340,7 @@ A **fully visual, interactive prototype** of the entire Slotta platform that dem
   - Save changes button
 
 - ✅ **Booking Link:**
-  - Unique URL: `aurasync.com/sophiabrown`
+  - Unique URL: `slotta.com/sophiabrown`
   - Copy link button
   - Share button
 

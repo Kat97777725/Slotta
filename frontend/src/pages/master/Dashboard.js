@@ -89,11 +89,11 @@ const Dashboard = () => {
   ];
 
   const todayBookings = [
-    { id: 1, client: 'Emma Wilson', service: 'Balayage', time: '09:00', aurasync: 40, status: 'confirmed' },
-    { id: 2, client: 'Olivia Smith', service: 'Haircut & Style', time: '11:00', aurasync: 18, status: 'confirmed' },
-    { id: 3, client: 'James Parker', service: 'Men\'s Cut', time: '14:30', aurasync: 12, status: 'pending' },
-    { id: 4, client: 'Sophie Taylor', service: 'Keratin Treatment', time: '16:00', aurasync: 35, status: 'confirmed' },
-    { id: 5, client: 'New Client', service: 'Color Correction', time: '18:00', aurasync: 60, status: 'high-risk' },
+    { id: 1, client: 'Emma Wilson', service: 'Balayage', time: '09:00', slotta: 40, status: 'confirmed' },
+    { id: 2, client: 'Olivia Smith', service: 'Haircut & Style', time: '11:00', slotta: 18, status: 'confirmed' },
+    { id: 3, client: 'James Parker', service: 'Men\'s Cut', time: '14:30', slotta: 12, status: 'pending' },
+    { id: 4, client: 'Sophie Taylor', service: 'Keratin Treatment', time: '16:00', slotta: 35, status: 'confirmed' },
+    { id: 5, client: 'New Client', service: 'Color Correction', time: '18:00', slotta: 60, status: 'high-risk' },
   ];
 
   const statusColors = {
@@ -156,7 +156,7 @@ const Dashboard = () => {
                 <div className="flex items-center space-x-6">
                   <div className="text-right">
                     <div className="font-semibold">{booking.time}</div>
-                    <div className="text-sm text-gray-500">€{booking.aurasync} protected</div>
+                    <div className="text-sm text-gray-500">€{booking.slotta} protected</div>
                   </div>
                   <Badge variant={statusColors[booking.status]}>
                     {booking.status}

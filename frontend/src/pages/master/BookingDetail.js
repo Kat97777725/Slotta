@@ -30,7 +30,7 @@ const BookingDetail = () => {
     time: '09:00',
     duration: '3 hours',
     price: 150,
-    aurasync: 40,
+    slotta: 40,
     status: 'confirmed',
     bookedAt: '2025-02-08 14:30',
     rescheduleDeadline: '2025-02-13 23:59',
@@ -125,7 +125,7 @@ const BookingDetail = () => {
                         <Shield className="w-4 h-4 text-purple-600" />
                         <span className="font-medium text-purple-600">Slotta Amount</span>
                       </div>
-                      <span className="font-bold text-lg text-purple-600">€{booking.aurasync}</span>
+                      <span className="font-bold text-lg text-purple-600">€{booking.slotta}</span>
                     </div>
                     <p className="text-xs text-gray-500 mt-2">
                       Authorized on client's card. Will be released when they arrive.

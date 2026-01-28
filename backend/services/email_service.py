@@ -19,7 +19,7 @@ class EmailService:
     
     def __init__(self):
         self.api_key = os.getenv('SENDGRID_API_KEY')
-        self.from_email = os.getenv('FROM_EMAIL', 'noreply@aurasync.com')
+        self.from_email = os.getenv('FROM_EMAIL', 'noreply@slotta.com')
         self.enabled = bool(self.api_key)
         
         if not self.enabled:
@@ -34,7 +34,7 @@ class EmailService:
         service_name: str,
         booking_date: str,
         booking_time: str,
-        aurasync_amount: float
+        slotta_amount: float
     ) -> bool:
         """Send booking confirmation email to client"""
         
@@ -60,7 +60,7 @@ class EmailService:
                         <p><strong>With:</strong> {master_name}</p>
                         <p><strong>Date:</strong> {booking_date}</p>
                         <p><strong>Time:</strong> {booking_time}</p>
-                        <p style="color: #8b5cf6;"><strong>Slotta:</strong> €{aurasync_amount} (held, not charged)</p>
+                        <p style="color: #8b5cf6;"><strong>Slotta:</strong> €{slotta_amount} (held, not charged)</p>
                     </div>
                     <p>See you soon!</p>
                     <p style="color: #6b7280; font-size: 12px;">Slotta - Protect your time, fairly.</p>
@@ -111,7 +111,7 @@ class EmailService:
                         <p><strong>Date:</strong> {booking_date}</p>
                         <p><strong>Time:</strong> {booking_time}</p>
                     </div>
-                    <p><a href="https://aurasync.com/master/bookings" style="background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">View Booking</a></p>
+                    <p><a href="https://slotta.com/master/bookings" style="background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">View Booking</a></p>
                 </div>
                 ''')
             
