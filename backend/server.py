@@ -657,6 +657,60 @@ async def get_master_analytics(master_id: str):
     }
 
 # ============================================================================
+# WALLET / TRANSACTIONS ENDPOINTS
+# ============================================================================
+
+@api_router.get("/wallet/master/{master_id}")
+async def get_master_wallet(master_id: str):
+    """Get wallet balance and transactions for a master"""
+    
+    # Get all transactions for this master
+    transactions = await db.transactions.find(
+        {"master_id": master_id},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(1000)
+    
+    # Calculate balances
+    total_credits = sum(t['amount'] for t in transactions if t.get('type') in ['wallet_credit', 'payout_received'])
+    total_payouts = sum(t['amount'] for t in transactions if t.get('type') == 'payout')
+    wallet_balance = total_credits - total_payouts
+    
+    # Get pending amount from confirmed bookings
+    confirmed_bookings = await db.bookings.find(
+        {"master_id": master_id, "status": "confirmed"},
+        {"_id": 0, "slotta_amount": 1}
+    ).to_list(10000)
+    pending_amount = sum(b.get('slotta_amount', 0) for b in confirmed_bookings)
+    
+    # Calculate lifetime earnings
+    lifetime_earnings = total_credits
+    
+    return {
+        "wallet_balance": round(wallet_balance, 2),
+        "pending_payouts": round(pending_amount, 2),
+        "lifetime_earnings": round(lifetime_earnings, 2),
+        "transactions": transactions[:50]  # Last 50 transactions
+    }
+
+@api_router.get("/transactions/master/{master_id}")
+async def get_master_transactions(master_id: str, limit: int = 50, offset: int = 0):
+    """Get paginated transactions for a master"""
+    
+    transactions = await db.transactions.find(
+        {"master_id": master_id},
+        {"_id": 0}
+    ).sort("created_at", -1).skip(offset).limit(limit).to_list(limit)
+    
+    total_count = await db.transactions.count_documents({"master_id": master_id})
+    
+    return {
+        "transactions": transactions,
+        "total_count": total_count,
+        "limit": limit,
+        "offset": offset
+    }
+
+# ============================================================================
 # HEALTH CHECK
 # ============================================================================
 
