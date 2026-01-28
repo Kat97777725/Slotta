@@ -86,7 +86,7 @@ async def create_service(service_input: ServiceCreate):
     """Create a new service"""
     
     # Calculate base AuraSync
-    base_aurasync = AuraSyncEngine.calculate_base_aurasync(
+    base_aurasync = TimeHoldEngine.calculate_base_aurasync(
         service_input.price,
         service_input.duration_minutes
     )
