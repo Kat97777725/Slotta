@@ -42,7 +42,7 @@ const LandingPage = () => {
         <div className="max-w-6xl mx-auto text-center">
           <div className="inline-flex items-center space-x-2 bg-purple-50 px-4 py-2 rounded-full mb-6">
             <Sparkles className="w-4 h-4 text-purple-600" />
-            <span className="text-sm font-medium text-purple-600">Protect Your Time. Without Punishing Clients.</span>
+            <span className="text-sm font-medium text-purple-600">AI-Powered Smart Scheduling with Fair Protection</span>
           </div>
           
           <h1 className="text-6xl md:text-7xl font-bold mb-6 leading-tight" data-testid="hero-title">
@@ -53,7 +53,7 @@ const LandingPage = () => {
           </h1>
           
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto" data-testid="hero-subtitle">
-            TimeHold protects beauty professionals' time & income from no-shows by holding client money fairly—
+            AuraSync protects beauty professionals' time & income from no-shows by holding client money fairly—
             without forcing full upfront payments.
           </p>
           
