@@ -1,60 +1,154 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Clock, Calendar, Wallet, User, Home, Edit, X, CheckCircle } from 'lucide-react';
+import { bookingsAPI, clientsAPI } from '@/lib/api';
+import { Clock, Calendar, Wallet, User, Home, Edit, X, CheckCircle, Loader2, Mail, AlertCircle } from 'lucide-react';
 
 const ClientPortal = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('bookings');
+  const [loading, setLoading] = useState(false);
+  const [bookings, setBookings] = useState([]);
+  const [clientEmail, setClientEmail] = useState('');
+  const [client, setClient] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [error, setError] = useState('');
 
-  const bookings = [
-    { 
-      id: 1, 
-      master: 'Sophia Brown', 
-      service: 'Balayage Hair Color', 
-      date: '2025-02-15', 
-      time: '09:00', 
-      price: 150, 
-      slotta: 40, 
-      status: 'confirmed',
-      location: 'London, UK'
-    },
-    { 
-      id: 2, 
-      master: 'Sophia Brown', 
-      service: 'Keratin Treatment', 
-      date: '2025-03-10', 
-      time: '14:00', 
-      price: 120, 
-      slotta: 35, 
-      status: 'confirmed',
-      location: 'London, UK'
-    },
-    { 
-      id: 3, 
-      master: 'Sophia Brown', 
-      service: 'Women\'s Haircut', 
-      date: '2025-01-20', 
-      time: '11:00', 
-      price: 60, 
-      slotta: 18, 
-      status: 'completed',
-      location: 'London, UK'
-    },
-  ];
+  // Check if client email is stored
+  useEffect(() => {
+    const storedEmail = localStorage.getItem('slotta_client_email');
+    if (storedEmail) {
+      setClientEmail(storedEmail);
+      setIsAuthenticated(true);
+      loadClientData(storedEmail);
+    }
+  }, []);
 
-  const walletBalance = 15;
-  const walletTransactions = [
-    { id: 1, type: 'credit', amount: 15, reason: 'No-show compensation - Refunded to wallet', date: '2025-02-01' },
-  ];
+  const loadClientData = async (email) => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      // Get client info
+      const clientResponse = await clientsAPI.getByEmail(email);
+      setClient(clientResponse.data);
+      
+      // Get bookings
+      const bookingsResponse = await bookingsAPI.getByClientEmail(email);
+      setBookings(bookingsResponse.data || []);
+      
+    } catch (err) {
+      console.error('Failed to load client data:', err);
+      if (err.response?.status === 404) {
+        setError('No bookings found for this email.');
+      } else {
+        setError('Failed to load your bookings. Please try again.');
+      }
+      setBookings([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (!clientEmail.trim()) return;
+    
+    localStorage.setItem('slotta_client_email', clientEmail);
+    setIsAuthenticated(true);
+    loadClientData(clientEmail);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('slotta_client_email');
+    setIsAuthenticated(false);
+    setClient(null);
+    setBookings([]);
+    setClientEmail('');
+  };
+
+  const handleCancelBooking = async (bookingId) => {
+    if (!window.confirm('Are you sure you want to cancel this booking? Your payment hold will be released.')) {
+      return;
+    }
+    
+    try {
+      await bookingsAPI.cancel(bookingId);
+      alert('✅ Booking cancelled successfully!');
+      loadClientData(clientEmail);
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Failed to cancel booking');
+    }
+  };
 
   const statusColors = {
     confirmed: 'success',
+    pending: 'warning',
     completed: 'info',
     cancelled: 'danger',
+    'no-show': 'danger',
   };
+
+  // Login Screen
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
+        <div className="bg-white border-b">
+          <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Clock className="w-6 h-6 text-purple-600" />
+              <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Slotta
+              </span>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
+              <Home className="w-4 h-4 mr-2" />
+              Home
+            </Button>
+          </div>
+        </div>
+
+        <div className="max-w-md mx-auto px-6 py-20">
+          <Card className="p-8">
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <User className="w-8 h-8 text-purple-600" />
+              </div>
+              <h1 className="text-2xl font-bold mb-2">Client Portal</h1>
+              <p className="text-gray-600">Enter your email to view your bookings</p>
+            </div>
+
+            <form onSubmit={handleLogin}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                <div className="relative">
+                  <Mail className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="email"
+                    value={clientEmail}
+                    onChange={(e) => setClientEmail(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    placeholder="your@email.com"
+                    required
+                    data-testid="client-email-input"
+                  />
+                </div>
+              </div>
+              <Button type="submit" className="w-full py-3" data-testid="client-login-btn">
+                View My Bookings
+              </Button>
+            </form>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  const walletBalance = client?.wallet_balance || 0;
+  const upcomingCount = bookings.filter(b => b.status === 'confirmed' || b.status === 'pending').length;
+  const completedCount = bookings.filter(b => b.status === 'completed').length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
@@ -74,10 +168,13 @@ const ClientPortal = () => {
             </Button>
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                JD
+                {client?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
               </div>
-              <span className="text-sm font-medium">Jane Doe</span>
+              <span className="text-sm font-medium">{client?.name || clientEmail}</span>
             </div>
+            <Button variant="outline" size="sm" onClick={handleLogout}>
+              Logout
+            </Button>
           </div>
         </div>
       </div>
@@ -108,19 +205,34 @@ const ClientPortal = () => {
           ))}
         </div>
 
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-12">
+            <Loader2 className="w-8 h-8 text-purple-600 animate-spin mx-auto mb-4" />
+            <p className="text-gray-600">Loading your data...</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <div className="flex items-center space-x-2 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-700 mb-6">
+            <AlertCircle className="w-5 h-5" />
+            <span>{error}</span>
+          </div>
+        )}
+
         {/* Bookings Tab */}
-        {activeTab === 'bookings' && (
+        {activeTab === 'bookings' && !loading && (
           <div>
             <div className="grid md:grid-cols-2 gap-6 mb-8">
-              {[
-                { label: 'Upcoming', value: bookings.filter(b => b.status === 'confirmed').length, color: 'purple' },
-                { label: 'Completed', value: bookings.filter(b => b.status === 'completed').length, color: 'green' },
-              ].map((stat, idx) => (
-                <Card key={idx} className="p-6">
-                  <div className={`text-4xl font-bold text-${stat.color}-600 mb-2`}>{stat.value}</div>
-                  <div className="text-gray-600">{stat.label} Bookings</div>
-                </Card>
-              ))}
+              <Card className="p-6">
+                <div className="text-4xl font-bold text-purple-600 mb-2">{upcomingCount}</div>
+                <div className="text-gray-600">Upcoming Bookings</div>
+              </Card>
+              <Card className="p-6">
+                <div className="text-4xl font-bold text-green-600 mb-2">{completedCount}</div>
+                <div className="text-gray-600">Completed Bookings</div>
+              </Card>
             </div>
 
             <Card>
@@ -128,75 +240,99 @@ const ClientPortal = () => {
                 <CardTitle>All Bookings</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {bookings.map((booking) => (
-                    <div
-                      key={booking.id}
-                      className="p-6 border rounded-lg hover:bg-gray-50 transition"
-                      data-testid={`client-booking-${booking.id}`}
-                    >
-                      <div className="flex items-start justify-between mb-4">
-                        <div>
-                          <h3 className="text-lg font-semibold mb-1">{booking.service}</h3>
-                          <p className="text-sm text-gray-600">with {booking.master}</p>
+                {bookings.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                    <p>No bookings yet</p>
+                    <Button className="mt-4" onClick={() => navigate('/')}>
+                      Book an Appointment
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {bookings.map((booking) => (
+                      <div
+                        key={booking.id}
+                        className="p-6 border rounded-lg hover:bg-gray-50 transition"
+                        data-testid={`client-booking-${booking.id}`}
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <div>
+                            <h3 className="text-lg font-semibold mb-1">
+                              {booking.service_name || 'Service'}
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              with {booking.master_name || 'Professional'}
+                            </p>
+                          </div>
+                          <Badge variant={statusColors[booking.status] || 'default'}>
+                            {booking.status}
+                          </Badge>
                         </div>
-                        <Badge variant={statusColors[booking.status]}>
-                          {booking.status}
-                        </Badge>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 mb-4">
-                        <div className="flex items-center space-x-2 text-gray-600">
-                          <Calendar className="w-4 h-4" />
-                          <span className="text-sm">
-                            {new Date(booking.date).toLocaleDateString('en-GB', {
-                              weekday: 'short',
-                              day: 'numeric',
-                              month: 'short',
-                            })}
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-2 text-gray-600">
-                          <Clock className="w-4 h-4" />
-                          <span className="text-sm">{booking.time}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between pt-4 border-t">
-                        <div>
-                          <div className="text-sm text-gray-600">Service Price: €{booking.price}</div>
-                          <div className="text-sm text-purple-600 font-medium">
-                            Slotta: €{booking.slotta} (held, not charged)
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                          <div className="flex items-center space-x-2 text-gray-600">
+                            <Calendar className="w-4 h-4" />
+                            <span className="text-sm">
+                              {booking.booking_date ? new Date(booking.booking_date).toLocaleDateString('en-GB', {
+                                weekday: 'short',
+                                day: 'numeric',
+                                month: 'short',
+                              }) : 'Date TBD'}
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-2 text-gray-600">
+                            <Clock className="w-4 h-4" />
+                            <span className="text-sm">
+                              {booking.booking_date ? new Date(booking.booking_date).toLocaleTimeString('en-GB', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              }) : 'Time TBD'}
+                            </span>
                           </div>
                         </div>
-                        {booking.status === 'confirmed' && (
-                          <div className="flex space-x-2">
-                            <Button variant="outline" size="sm">
-                              <Edit className="w-4 h-4 mr-1" />
-                              Reschedule
-                            </Button>
-                            <Button variant="outline" size="sm" className="text-red-600 border-red-600">
-                              <X className="w-4 h-4 mr-1" />
-                              Cancel
-                            </Button>
+                        <div className="flex items-center justify-between pt-4 border-t">
+                          <div>
+                            <div className="text-sm text-gray-600">
+                              Service Price: €{booking.service_price || 0}
+                            </div>
+                            <div className="text-sm text-purple-600 font-medium">
+                              Slotta: €{booking.slotta_amount || 0} (held, not charged)
+                            </div>
                           </div>
-                        )}
+                          {(booking.status === 'confirmed' || booking.status === 'pending') && (
+                            <div className="flex space-x-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="text-red-600 border-red-600 hover:bg-red-50"
+                                onClick={() => handleCancelBooking(booking.id)}
+                              >
+                                <X className="w-4 h-4 mr-1" />
+                                Cancel
+                              </Button>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
         )}
 
         {/* Wallet Tab */}
-        {activeTab === 'wallet' && (
+        {activeTab === 'wallet' && !loading && (
           <div>
             <Card className="mb-8 bg-gradient-to-br from-purple-600 to-pink-600 text-white">
               <CardContent className="p-8">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-sm text-purple-100 mb-2">Available Balance</div>
-                    <div className="text-5xl font-bold mb-2" data-testid="wallet-balance">€{walletBalance}</div>
+                    <div className="text-5xl font-bold mb-2" data-testid="wallet-balance">
+                      €{walletBalance}
+                    </div>
                     <p className="text-sm text-purple-100">
                       Use this credit for your next booking
                     </p>
@@ -227,7 +363,7 @@ const ClientPortal = () => {
                     <div>
                       <h4 className="font-semibold mb-1">Automatic Application</h4>
                       <p className="text-sm text-gray-600">
-                        Your wallet balance is automatically applied to your next booking, reducing the amount charged.
+                        Your wallet balance is automatically applied to your next booking.
                       </p>
                     </div>
                   </div>
@@ -243,37 +379,11 @@ const ClientPortal = () => {
                 </div>
               </CardContent>
             </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Transaction History</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {walletTransactions.length > 0 ? (
-                  <div className="space-y-3">
-                    {walletTransactions.map((transaction) => (
-                      <div key={transaction.id} className="p-4 border rounded-lg">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-semibold">Credit Added</span>
-                          <span className="text-lg font-bold text-green-600">+€{transaction.amount}</span>
-                        </div>
-                        <div className="text-sm text-gray-600 mb-1">{transaction.reason}</div>
-                        <div className="text-xs text-gray-500">
-                          {new Date(transaction.date).toLocaleDateString('en-GB')}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-500 text-center py-8">No transactions yet</p>
-                )}
-              </CardContent>
-            </Card>
           </div>
         )}
 
         {/* Profile Tab */}
-        {activeTab === 'profile' && (
+        {activeTab === 'profile' && !loading && (
           <Card>
             <CardHeader>
               <CardTitle>Personal Information</CardTitle>
@@ -282,41 +392,60 @@ const ClientPortal = () => {
               <div className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
                     <input
                       type="text"
-                      defaultValue="Jane"
-                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-                    <input
-                      type="text"
-                      defaultValue="Doe"
-                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                      value={client?.name || ''}
+                      readOnly
+                      className="w-full px-4 py-2 border rounded-lg bg-gray-50"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
                     <input
                       type="email"
-                      defaultValue="jane.doe@email.com"
-                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                      value={client?.email || clientEmail}
+                      readOnly
+                      className="w-full px-4 py-2 border rounded-lg bg-gray-50"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
                     <input
                       type="tel"
-                      defaultValue="+44 7700 900001"
-                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                      value={client?.phone || 'Not provided'}
+                      readOnly
+                      className="w-full px-4 py-2 border rounded-lg bg-gray-50"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Member Since</label>
+                    <input
+                      type="text"
+                      value={client?.created_at ? new Date(client.created_at).toLocaleDateString('en-GB') : 'N/A'}
+                      readOnly
+                      className="w-full px-4 py-2 border rounded-lg bg-gray-50"
                     />
                   </div>
                 </div>
-                <Button>
-                  Save Changes
-                </Button>
+                
+                <div className="pt-4 border-t">
+                  <h4 className="font-semibold mb-4">Booking Stats</h4>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="text-center p-4 bg-purple-50 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600">{client?.total_bookings || 0}</div>
+                      <div className="text-sm text-gray-600">Total Bookings</div>
+                    </div>
+                    <div className="text-center p-4 bg-green-50 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">{client?.completed_bookings || 0}</div>
+                      <div className="text-sm text-gray-600">Completed</div>
+                    </div>
+                    <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                      <div className="text-2xl font-bold text-yellow-600">{client?.reliability || 'new'}</div>
+                      <div className="text-sm text-gray-600">Status</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
