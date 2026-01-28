@@ -84,7 +84,7 @@ class Service(MongoModel):
     description: Optional[str] = None
     duration_minutes: int
     price: float
-    base_timehold: float  # Calculated amount
+    base_slotta: float = 0.0  # Calculated Slotta amount
     active: bool = True
     new_clients_only: bool = False
     created_at: datetime = Field(default_factory=datetime.utcnow)
