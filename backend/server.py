@@ -524,6 +524,120 @@ async def get_master_analytics(master_id: str):
 # ============================================================================
 
 @api_router.get("/health")
+
+# ============================================================================
+# MESSAGING ENDPOINTS
+# ============================================================================
+
+@api_router.post("/messages/send")
+async def send_message_to_client(
+    master_id: str,
+    client_id: str,
+    booking_id: Optional[str] = None,
+    message: str = ""
+):
+    """Send message to client via email/Telegram"""
+    
+    # Get master and client
+    master = await db.masters.find_one({"id": master_id}, {"_id": 0})
+    client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+    
+    if not master or not client:
+        raise HTTPException(status_code=404, detail="Master or client not found")
+    
+    # Send via email
+    try:
+        from sendgrid import SendGridAPIClient
+        from sendgrid.helpers.mail import Mail
+        
+        email_message = Mail(
+            from_email=os.getenv('FROM_EMAIL', 'noreply@slotta.app'),
+            to_emails=client['email'],
+            subject=f"Message from {master['name']}",
+            html_content=f'''
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #8b5cf6;">Message from {master['name']}</h2>
+                <p>Hi {client['name']},</p>
+                <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    {message}
+                </div>
+                <p>Reply to this email to contact {master['name']} directly.</p>
+                <p style="color: #6b7280; font-size: 12px;">Slotta - Smart scheduling for professionals.</p>
+            </div>
+            ''')
+        
+        sg = SendGridAPIClient(os.getenv('SENDGRID_API_KEY'))
+        response = sg.send(email_message)
+        
+        logger.info(f"✅ Message sent to {client['email']}")
+        
+    except Exception as e:
+        logger.error(f"❌ Failed to send email: {e}")
+    
+    # Store message in database
+    message_doc = {
+        "id": str(datetime.utcnow().timestamp()),
+        "master_id": master_id,
+        "client_id": client_id,
+        "booking_id": booking_id,
+        "message": message,
+        "sent_at": datetime.utcnow()
+    }
+    await db.messages.insert_one(message_doc)
+    
+    return {"message": "Message sent successfully"}
+
+# ============================================================================
+# CALENDAR BLOCK ENDPOINTS
+# ============================================================================
+
+@api_router.post("/calendar/blocks")
+async def create_calendar_block(
+    master_id: str,
+    start_datetime: datetime,
+    end_datetime: datetime,
+    reason: Optional[str] = None
+):
+    """Block time on calendar"""
+    
+    block = {
+        "id": str(datetime.utcnow().timestamp()),
+        "master_id": master_id,
+        "start_datetime": start_datetime,
+        "end_datetime": end_datetime,
+        "reason": reason,
+        "created_at": datetime.utcnow()
+    }
+    
+    await db.calendar_blocks.insert_one(block)
+    
+    logger.info(f"✅ Calendar blocked: {master_id} from {start_datetime} to {end_datetime}")
+    return {"message": "Time blocked successfully", "block_id": block['id']}
+
+@api_router.get("/calendar/blocks/master/{master_id}")
+async def get_master_calendar_blocks(master_id: str):
+    """Get all calendar blocks for a master"""
+    
+    blocks = await db.calendar_blocks.find(
+        {"master_id": master_id},
+        {"_id": 0}
+    ).sort("start_datetime", 1).to_list(1000)
+    
+    return blocks
+
+@api_router.delete("/calendar/blocks/{block_id}")
+async def delete_calendar_block(block_id: str):
+    """Delete a calendar block"""
+    
+    result = await db.calendar_blocks.delete_one({"id": block_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Block not found")
+    
+    logger.info(f"✅ Calendar block deleted: {block_id}")
+    return {"message": "Block deleted successfully"}
+
+
 async def health_check():
     """Health check endpoint"""
     return {
