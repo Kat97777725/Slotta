@@ -841,19 +841,6 @@ async def delete_calendar_block(block_id: str):
     return {"message": "Block deleted successfully"}
 
 
-async def health_check():
-    """Health check endpoint"""
-    return {
-        "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat(),
-        "services": {
-            "email": email_service.enabled,
-            "telegram": telegram_service.enabled,
-            "stripe": stripe_service.enabled,
-            "google_calendar": google_calendar_service.enabled
-        }
-    }
-
 @api_router.get("/")
 async def root():
     return {
