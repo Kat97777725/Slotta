@@ -36,10 +36,10 @@ const Services = () => {
       // Use mock data if API fails
       setServices([
         { id: 1, name: 'Balayage Hair Color', duration_minutes: 180, price: 150, base_slotta: 40, active: true },
-        { id: 2, name: \"Women's Haircut & Style\", duration_minutes: 60, price: 60, base_slotta: 18, active: true },
+        { id: 2, name: 'Women\'s Haircut & Style', duration_minutes: 60, price: 60, base_slotta: 18, active: true },
         { id: 3, name: 'Color Correction', duration_minutes: 240, price: 200, base_slotta: 60, active: true },
         { id: 4, name: 'Keratin Treatment', duration_minutes: 150, price: 120, base_slotta: 35, active: true },
-        { id: 5, name: \"Men's Haircut\", duration_minutes: 45, price: 40, base_slotta: 12, active: true },
+        { id: 5, name: 'Men\'s Haircut', duration_minutes: 45, price: 40, base_slotta: 12, active: true },
         { id: 6, name: 'Hair Extensions', duration_minutes: 300, price: 350, base_slotta: 90, active: false },
       ]);
     } finally {
