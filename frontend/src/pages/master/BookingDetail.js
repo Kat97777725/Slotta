@@ -312,6 +312,56 @@ const BookingDetail = () => {
           </div>
         </div>
       </div>
+
+
+      {/* Message Client Modal */}
+      <Modal 
+        isOpen={showMessageModal} 
+        onClose={() => setShowMessageModal(false)} 
+        title="Message Client"
+      >
+        <div className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm text-blue-900">
+              <strong>To:</strong> {booking.client.name} ({booking.client.email})
+            </p>
+          </div>
+
+          <Textarea
+            label="Your Message"
+            placeholder="Hi Emma, just wanted to confirm your appointment..."
+            value={messageText}
+            onChange={(e) => setMessageText(e.target.value)}
+            rows={6}
+            required
+          />
+
+          <div className="bg-gray-50 rounded-lg p-3">
+            <p className="text-xs text-gray-600">
+              💡 This message will be sent via email. The client can reply directly to your email.
+            </p>
+          </div>
+
+          <div className="flex space-x-4 pt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowMessageModal(false)} 
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSendMessage} 
+              className="flex-1" 
+              disabled={loading || !messageText.trim()}
+              data-testid="send-message-btn"
+            >
+              {loading ? 'Sending...' : 'Send Message'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
     </MasterLayout>
   );
 };
