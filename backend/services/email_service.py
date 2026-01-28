@@ -169,6 +169,86 @@ class EmailService:
         except Exception as e:
             logger.error(f"❌ Failed to send email: {e}")
             return False
+    
+    async def send_daily_summary(
+        self,
+        to_email: str,
+        master_name: str,
+        upcoming_bookings: list,
+        time_protected: float,
+        pending_payouts: float
+    ) -> bool:
+        """Send daily summary email to master (Quick Stats)"""
+        
+        if not self.enabled:
+            logger.info(f"[MOCK] Would send daily summary to {to_email}")
+            return True
+        
+        try:
+            from sendgrid import SendGridAPIClient
+            from sendgrid.helpers.mail import Mail
+            
+            # Build bookings list HTML
+            bookings_html = ""
+            if upcoming_bookings:
+                bookings_html = "<ul style='margin: 0; padding-left: 20px;'>"
+                for b in upcoming_bookings[:5]:
+                    bookings_html += f"<li>{b['time']} - {b['client']} ({b['service']})</li>"
+                bookings_html += "</ul>"
+                if len(upcoming_bookings) > 5:
+                    bookings_html += f"<p style='color: #6b7280; font-size: 12px;'>+ {len(upcoming_bookings) - 5} more</p>"
+            else:
+                bookings_html = "<p style='color: #6b7280;'>No bookings today</p>"
+            
+            message = Mail(
+                from_email=self.from_email,
+                to_emails=to_email,
+                subject=f'☀️ Good morning, {master_name}! Your daily summary',
+                html_content=f'''
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #8b5cf6;">Good morning, {master_name}!</h2>
+                    <p>Here's your daily summary:</p>
+                    
+                    <div style="background: linear-gradient(135deg, #8b5cf6, #ec4899); padding: 20px; border-radius: 12px; color: white; margin: 20px 0;">
+                        <h3 style="margin-top: 0;">Today's Schedule</h3>
+                        <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 8px;">
+                            {bookings_html}
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 15px; margin: 20px 0;">
+                        <div style="flex: 1; background: #f3f4f6; padding: 20px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 32px; font-weight: bold; color: #8b5cf6;">€{time_protected}</div>
+                            <div style="color: #6b7280; font-size: 14px;">Time Protected</div>
+                        </div>
+                        <div style="flex: 1; background: #f3f4f6; padding: 20px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 32px; font-weight: bold; color: #10b981;">€{pending_payouts}</div>
+                            <div style="color: #6b7280; font-size: 14px;">Pending Payouts</div>
+                        </div>
+                    </div>
+                    
+                    <p style="text-align: center;">
+                        <a href="https://slotta.app/master/dashboard" style="background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                            View Dashboard
+                        </a>
+                    </p>
+                    
+                    <p style="color: #6b7280; font-size: 12px; text-align: center; margin-top: 30px;">
+                        Slotta - Protect your time, fairly.<br>
+                        <a href="https://slotta.app/master/settings" style="color: #8b5cf6;">Manage email preferences</a>
+                    </p>
+                </div>
+                ''')
+            
+            sg = SendGridAPIClient(self.api_key)
+            response = sg.send(message)
+            
+            logger.info(f"✅ Daily summary sent to {to_email}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to send daily summary: {e}")
+            return False
 
 # Global instance
 email_service = EmailService()
