@@ -90,43 +90,54 @@ const Bookings = () => {
       {/* Bookings List */}
       <Card>
         <CardContent className="p-0">
-          <div className="divide-y">
-            {filteredBookings.map((booking) => (
-              <div
-                key={booking.id}
-                className="p-6 hover:bg-gray-50 transition cursor-pointer flex items-center justify-between"
-                onClick={() => navigate(`/master/bookings/${booking.id}`)}
-                data-testid={`booking-row-${booking.id}`}
-              >
-                <div className="flex items-center space-x-6 flex-1">
-                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center font-semibold text-purple-600">
-                    {booking.client.split(' ').map(n => n[0]).join('')}
-                  </div>
-                  <div>
-                    <div className="font-semibold text-lg">{booking.client}</div>
-                    <div className="text-sm text-gray-500">{booking.service}</div>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-8">
-                  <div className="text-right">
-                    <div className="flex items-center space-x-2 text-gray-600 mb-1">
-                      <Calendar className="w-4 h-4" />
-                      <span className="text-sm">
-                        {new Date(booking.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                      </span>
-                      <span className="font-semibold">{booking.time}</span>
+          {loading ? (
+            <div className="text-center py-12 text-gray-500">Loading bookings...</div>
+          ) : filteredBookings.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">No bookings found</div>
+          ) : (
+            <div className="divide-y">
+              {filteredBookings.map((booking) => {
+                const bookingDate = new Date(booking.booking_date);
+                return (
+                  <div
+                    key={booking.id}
+                    className="p-6 hover:bg-gray-50 transition cursor-pointer flex items-center justify-between"
+                    onClick={() => navigate(`/master/bookings/${booking.id}`)}
+                    data-testid={`booking-row-${booking.id}`}
+                  >
+                    <div className="flex items-center space-x-6 flex-1">
+                      <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center font-semibold text-purple-600">
+                        {booking.client_id ? booking.client_id.substring(0, 2).toUpperCase() : '??'}
+                      </div>
+                      <div>
+                        <div className="font-semibold text-lg">Client #{booking.client_id || 'Unknown'}</div>
+                        <div className="text-sm text-gray-500">Service #{booking.service_id || 'Unknown'}</div>
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-500">
-                      €{booking.price} • Slotta: €{booking.slotta}
+                    <div className="flex items-center space-x-8">
+                      <div className="text-right">
+                        <div className="flex items-center space-x-2 text-gray-600 mb-1">
+                          <Calendar className="w-4 h-4" />
+                          <span className="text-sm">
+                            {bookingDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                          </span>
+                          <span className="font-semibold">
+                            {bookingDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          €{booking.service_price || 0} • Slotta: €{booking.slotta_amount || 0}
+                        </div>
+                      </div>
+                      <Badge variant={statusColors[booking.status]} className="min-w-[100px] justify-center">
+                        {booking.status}
+                      </Badge>
                     </div>
                   </div>
-                  <Badge variant={statusColors[booking.status]} className="min-w-[100px] justify-center">
-                    {booking.status}
-                  </Badge>
-                </div>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
 
