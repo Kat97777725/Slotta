@@ -1,5 +1,6 @@
-from fastapi import FastAPI, APIRouter, HTTPException, status
+from fastapi import FastAPI, APIRouter, HTTPException, status, Depends
 from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -8,6 +9,8 @@ import logging
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import List, Optional
+import hashlib
+import jwt
 
 # Load environment
 ROOT_DIR = Path(__file__).parent
@@ -15,7 +18,7 @@ load_dotenv(ROOT_DIR / '.env')
 
 # Import models and services
 from models import (
-    Master, MasterCreate, Service, ServiceCreate,
+    Master, MasterCreate, MasterLogin, MasterResponse, Service, ServiceCreate,
     Client, ClientCreate, Booking, BookingCreate,
     Transaction, TransactionCreate, BookingStatus, ClientReliability
 )
@@ -33,6 +36,53 @@ logger = logging.getLogger(__name__)
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
+
+# JWT Settings
+JWT_SECRET = os.environ.get('JWT_SECRET', 'slotta_jwt_secret_key_2025')
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRATION_HOURS = 24 * 7  # 7 days
+
+# Security
+security = HTTPBearer(auto_error=False)
+
+def hash_password(password: str) -> str:
+    """Hash password using SHA256"""
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def verify_password(password: str, password_hash: str) -> bool:
+    """Verify password against hash"""
+    return hash_password(password) == password_hash
+
+def create_token(master_id: str, email: str) -> str:
+    """Create JWT token"""
+    payload = {
+        "sub": master_id,
+        "email": email,
+        "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS),
+        "iat": datetime.utcnow()
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+async def get_current_master(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Get current authenticated master"""
+    if not credentials:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    try:
+        payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        master_id = payload.get("sub")
+        if not master_id:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        
+        master = await db.masters.find_one({"id": master_id}, {"_id": 0, "password_hash": 0})
+        if not master:
+            raise HTTPException(status_code=401, detail="Master not found")
+        
+        return master
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
 # Create FastAPI app
 app = FastAPI(title="Slotta API", version="1.0.0")
