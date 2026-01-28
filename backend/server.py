@@ -291,6 +291,16 @@ async def delete_service(service_id: str):
     logger.info(f"✅ Service deleted: {service_id}")
     return {"message": "Service deleted successfully"}
 
+@api_router.get("/services/{service_id}", response_model=Service)
+async def get_service(service_id: str):
+    """Get a service by ID"""
+    
+    service = await db.services.find_one({"id": service_id}, {"_id": 0})
+    if not service:
+        raise HTTPException(status_code=404, detail="Service not found")
+    
+    return service
+
 @api_router.put("/masters/{master_id}", response_model=Master)
 async def update_master(master_id: str, master_data: dict):
     """Update master profile"""
