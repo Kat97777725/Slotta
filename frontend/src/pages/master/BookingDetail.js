@@ -4,15 +4,23 @@ import { MasterLayout } from './Dashboard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
+import { Textarea } from '@/components/ui/Input';
+import { messagesAPI } from '@/lib/api';
 import { 
   Clock, Calendar, DollarSign, Shield, User, Phone, Mail, 
   MapPin, AlertTriangle, CheckCircle, XCircle, Edit 
 } from 'lucide-react';
 
+const MASTER_ID = 'demo-master-123';
+
 const BookingDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [showActions, setShowActions] = useState(false);
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [messageText, setMessageText] = useState('');
+  const [loading, setLoading] = useState(false);
 
   // Mock booking data
   const booking = {
