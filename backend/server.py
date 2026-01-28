@@ -383,7 +383,7 @@ async def mark_booking_no_show(booking_id: str):
         client_id=booking['client_id'],
         type="wallet_credit",
         amount=split['client_wallet_credit'],
-        description=f"Wallet credit from no-show"
+        description="Wallet credit from no-show"
     )
     await db.transactions.insert_one(client_transaction.model_dump())
     
