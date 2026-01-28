@@ -306,7 +306,7 @@ async def mark_booking_complete(booking_id: str):
     
     # Update client reliability
     client = await db.clients.find_one({"id": booking['client_id']}, {"_id": 0})
-    new_reliability = AuraSyncEngine.determine_reliability(
+    new_reliability = TimeHoldEngine.determine_reliability(
         total_bookings=client['total_bookings'],
         no_shows=client['no_shows']
     )
@@ -352,7 +352,7 @@ async def mark_booking_no_show(booking_id: str):
     
     # Update client reliability
     client = await db.clients.find_one({"id": booking['client_id']}, {"_id": 0})
-    new_reliability = AuraSyncEngine.determine_reliability(
+    new_reliability = TimeHoldEngine.determine_reliability(
         total_bookings=client['total_bookings'],
         no_shows=client['no_shows'] + 1
     )
