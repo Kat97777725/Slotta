@@ -19,7 +19,7 @@ from models import (
     Client, ClientCreate, Booking, BookingCreate,
     Transaction, TransactionCreate, BookingStatus, ClientReliability
 )
-from timehold_engine import TimeHoldEngine
+from aurasync_engine import AuraSyncEngine
 from services import email_service, telegram_service, stripe_service, google_calendar_service
 
 # Configure logging
@@ -35,7 +35,7 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 # Create FastAPI app
-app = FastAPI(title="TimeHold API", version="1.0.0")
+app = FastAPI(title="AuraSync API", version="1.0.0")
 api_router = APIRouter(prefix="/api")
 
 # ============================================================================
@@ -85,20 +85,20 @@ async def get_master(master_id: str):
 async def create_service(service_input: ServiceCreate):
     """Create a new service"""
     
-    # Calculate base TimeHold
-    base_timehold = TimeHoldEngine.calculate_base_timehold(
+    # Calculate base AuraSync
+    base_aurasync = AuraSyncEngine.calculate_base_aurasync(
         service_input.price,
         service_input.duration_minutes
     )
     
     service = Service(
         **service_input.model_dump(),
-        base_timehold=base_timehold
+        base_aurasync=base_aurasync
     )
     
     await db.services.insert_one(service.model_dump())
     
-    logger.info(f"✅ Service created: {service.name} - €{service.price} (TimeHold: €{service.base_timehold})")
+    logger.info(f"✅ Service created: {service.name} - €{service.price} (AuraSync: €{service.base_aurasync})")
     return service
 
 @api_router.get("/services/master/{master_id}", response_model=List[Service])
@@ -179,8 +179,8 @@ async def create_booking(booking_input: BookingCreate):
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
     
-    # Calculate TimeHold
-    timehold_amount = TimeHoldEngine.calculate_timehold(
+    # Calculate AuraSync
+    aurasync_amount = AuraSyncEngine.calculate_aurasync(
         price=service['price'],
         duration_minutes=service['duration_minutes'],
         client_reliability=client['reliability'],
@@ -189,7 +189,7 @@ async def create_booking(booking_input: BookingCreate):
     )
     
     # Calculate risk score
-    risk_score = TimeHoldEngine.calculate_risk_score(
+    risk_score = AuraSyncEngine.calculate_risk_score(
         total_bookings=client['total_bookings'],
         completed_bookings=client['completed_bookings'],
         no_shows=client['no_shows'],
@@ -204,7 +204,7 @@ async def create_booking(booking_input: BookingCreate):
         **booking_input.model_dump(),
         duration_minutes=service['duration_minutes'],
         service_price=service['price'],
-        timehold_amount=timehold_amount,
+        aurasync_amount=aurasync_amount,
         risk_score=risk_score,
         reschedule_deadline=reschedule_deadline
     )
@@ -228,7 +228,7 @@ async def create_booking(booking_input: BookingCreate):
         service_name=service['name'],
         booking_date=booking_input.booking_date.strftime("%A, %B %d, %Y"),
         booking_time=booking_input.booking_date.strftime("%I:%M %p"),
-        timehold_amount=timehold_amount
+        aurasync_amount=aurasync_amount
     )
     
     await email_service.send_master_new_booking(
@@ -250,7 +250,7 @@ async def create_booking(booking_input: BookingCreate):
             booking_time=booking_input.booking_date.strftime("%I:%M %p")
         )
     
-    logger.info(f"✅ Booking created: {client['name']} → {master['name']} (TimeHold: €{timehold_amount})")
+    logger.info(f"✅ Booking created: {client['name']} → {master['name']} (AuraSync: €{aurasync_amount})")
     return booking
 
 @api_router.get("/bookings/{booking_id}", response_model=Booking)
@@ -306,7 +306,7 @@ async def mark_booking_complete(booking_id: str):
     
     # Update client reliability
     client = await db.clients.find_one({"id": booking['client_id']}, {"_id": 0})
-    new_reliability = TimeHoldEngine.determine_reliability(
+    new_reliability = AuraSyncEngine.determine_reliability(
         total_bookings=client['total_bookings'],
         no_shows=client['no_shows']
     )
@@ -324,14 +324,14 @@ async def mark_booking_complete(booking_id: str):
 
 @api_router.put("/bookings/{booking_id}/no-show")
 async def mark_booking_no_show(booking_id: str):
-    """Mark booking as no-show and capture TimeHold"""
+    """Mark booking as no-show and capture AuraSync"""
     
     booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
     
     # Calculate split
-    split = TimeHoldEngine.calculate_no_show_split(booking['timehold_amount'])
+    split = AuraSyncEngine.calculate_no_show_split(booking['aurasync_amount'])
     
     # Update booking status
     await db.bookings.update_one(
@@ -352,7 +352,7 @@ async def mark_booking_no_show(booking_id: str):
     
     # Update client reliability
     client = await db.clients.find_one({"id": booking['client_id']}, {"_id": 0})
-    new_reliability = TimeHoldEngine.determine_reliability(
+    new_reliability = AuraSyncEngine.determine_reliability(
         total_bookings=client['total_bookings'],
         no_shows=client['no_shows'] + 1
     )
@@ -365,7 +365,7 @@ async def mark_booking_no_show(booking_id: str):
     if booking.get('stripe_payment_intent_id'):
         await stripe_service.capture_payment(
             booking['stripe_payment_intent_id'],
-            booking['timehold_amount']
+            booking['aurasync_amount']
         )
     
     # Create transactions
@@ -429,7 +429,7 @@ async def get_master_analytics(master_id: str):
     completed = len([b for b in bookings if b['status'] == BookingStatus.COMPLETED])
     no_shows = len([b for b in bookings if b['status'] == BookingStatus.NO_SHOW])
     
-    total_timehold_protected = sum(b.get('timehold_amount', 0) for b in bookings)
+    total_aurasync_protected = sum(b.get('aurasync_amount', 0) for b in bookings)
     
     # Get transactions
     transactions = await db.transactions.find(
@@ -444,9 +444,9 @@ async def get_master_analytics(master_id: str):
         "completed_bookings": completed,
         "no_shows": no_shows,
         "no_show_rate": (no_shows / total_bookings * 100) if total_bookings > 0 else 0,
-        "time_protected_eur": total_timehold_protected,
+        "time_protected_eur": total_aurasync_protected,
         "wallet_balance": wallet_balance,
-        "avg_timehold": total_timehold_protected / total_bookings if total_bookings > 0 else 0
+        "avg_aurasync": total_aurasync_protected / total_bookings if total_bookings > 0 else 0
     }
 
 # ============================================================================
@@ -470,7 +470,7 @@ async def health_check():
 @api_router.get("/")
 async def root():
     return {
-        "message": "TimeHold API v1.0",
+        "message": "AuraSync API v1.0",
         "docs": "/docs",
         "health": "/api/health"
     }
@@ -489,7 +489,7 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup_event():
-    logger.info("🚀 TimeHold API starting...")
+    logger.info("🚀 AuraSync API starting...")
     logger.info(f"📧 Email service: {'✅ Enabled' if email_service.enabled else '❌ Disabled (add SENDGRID_API_KEY)'}")
     logger.info(f"🤖 Telegram bot: {'✅ Enabled' if telegram_service.enabled else '❌ Disabled (add TELEGRAM_BOT_TOKEN)'}")
     logger.info(f"💳 Stripe: {'✅ Enabled' if stripe_service.enabled else '❌ Disabled (add STRIPE_SECRET_KEY)'}")
@@ -498,4 +498,4 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
-    logger.info("👋 TimeHold API shutting down...")
+    logger.info("👋 AuraSync API shutting down...")
