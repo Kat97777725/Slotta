@@ -931,6 +931,174 @@ async def get_master_transactions(master_id: str, limit: int = 50, offset: int =
     }
 
 # ============================================================================
+# GOOGLE CALENDAR OAUTH
+# ============================================================================
+
+@api_router.get("/google/auth-url")
+async def get_google_auth_url(master_id: str = ""):
+    """Get Google OAuth authorization URL"""
+    
+    if not google_calendar_service.enabled:
+        raise HTTPException(status_code=503, detail="Google Calendar integration not configured")
+    
+    auth_url = google_calendar_service.get_auth_url(state=master_id)
+    return {"auth_url": auth_url}
+
+@api_router.post("/google/oauth/callback")
+async def google_oauth_callback(code: str, state: str = ""):
+    """Handle Google OAuth callback"""
+    
+    # Exchange code for tokens
+    tokens = await google_calendar_service.exchange_code(code)
+    if not tokens:
+        raise HTTPException(status_code=400, detail="Failed to exchange OAuth code")
+    
+    # If state contains master_id, update master's token
+    if state:
+        await db.masters.update_one(
+            {"id": state},
+            {"$set": {
+                "google_calendar_token": tokens.get('access_token'),
+                "google_refresh_token": tokens.get('refresh_token'),
+                "google_calendar_connected": True,
+                "updated_at": datetime.utcnow()
+            }}
+        )
+        logger.info(f"✅ Google Calendar connected for master: {state}")
+    
+    return {
+        "success": True,
+        "message": "Google Calendar connected successfully"
+    }
+
+@api_router.get("/google/sync-status/{master_id}")
+async def get_google_sync_status(master_id: str):
+    """Check if Google Calendar is connected for a master"""
+    
+    master = await db.masters.find_one(
+        {"id": master_id},
+        {"_id": 0, "google_calendar_connected": 1, "google_calendar_token": 1}
+    )
+    
+    if not master:
+        raise HTTPException(status_code=404, detail="Master not found")
+    
+    return {
+        "connected": bool(master.get('google_calendar_connected')),
+        "has_token": bool(master.get('google_calendar_token'))
+    }
+
+@api_router.post("/google/disconnect/{master_id}")
+async def disconnect_google_calendar(master_id: str):
+    """Disconnect Google Calendar from master account"""
+    
+    await db.masters.update_one(
+        {"id": master_id},
+        {"$set": {
+            "google_calendar_token": None,
+            "google_refresh_token": None,
+            "google_calendar_connected": False,
+            "updated_at": datetime.utcnow()
+        }}
+    )
+    
+    logger.info(f"✅ Google Calendar disconnected for master: {master_id}")
+    return {"success": True, "message": "Google Calendar disconnected"}
+
+@api_router.post("/google/import-events/{master_id}")
+async def import_google_events(master_id: str):
+    """Import Google Calendar events as blocked time (two-way sync)"""
+    
+    master = await db.masters.find_one({"id": master_id}, {"_id": 0})
+    if not master:
+        raise HTTPException(status_code=404, detail="Master not found")
+    
+    if not master.get('google_calendar_token'):
+        raise HTTPException(status_code=400, detail="Google Calendar not connected")
+    
+    imported_count = await google_calendar_service.import_events_as_blocks(
+        access_token=master['google_calendar_token'],
+        master_id=master_id,
+        db=db
+    )
+    
+    return {
+        "success": True,
+        "imported_count": imported_count,
+        "message": f"Imported {imported_count} events as blocked time"
+    }
+
+# ============================================================================
+# DAILY SUMMARY SCHEDULER
+# ============================================================================
+
+@api_router.post("/admin/send-daily-summaries")
+async def send_daily_summaries():
+    """Send daily summary emails to all masters (called by cron/scheduler)"""
+    
+    # Get all masters with email notifications enabled
+    masters = await db.masters.find(
+        {"settings.daily_summary_enabled": {"$ne": False}},
+        {"_id": 0}
+    ).to_list(10000)
+    
+    sent_count = 0
+    today = datetime.utcnow().date()
+    
+    for master in masters:
+        # Get today's bookings
+        start_of_day = datetime.combine(today, datetime.min.time())
+        end_of_day = start_of_day + timedelta(days=1)
+        
+        bookings = await db.bookings.find({
+            "master_id": master['id'],
+            "booking_date": {"$gte": start_of_day, "$lt": end_of_day},
+            "status": {"$in": ["confirmed", "pending"]}
+        }, {"_id": 0}).sort("booking_date", 1).to_list(100)
+        
+        # Format bookings for email
+        upcoming = []
+        for b in bookings:
+            service = await db.services.find_one({"id": b['service_id']}, {"_id": 0, "name": 1})
+            client = await db.clients.find_one({"id": b['client_id']}, {"_id": 0, "name": 1})
+            upcoming.append({
+                "time": b['booking_date'].strftime("%H:%M"),
+                "client": client['name'] if client else "Client",
+                "service": service['name'] if service else "Service"
+            })
+        
+        # Get analytics
+        analytics = await db.bookings.aggregate([
+            {"$match": {"master_id": master['id'], "status": "confirmed"}},
+            {"$group": {"_id": None, "total_slotta": {"$sum": "$slotta_amount"}}}
+        ]).to_list(1)
+        
+        time_protected = analytics[0]['total_slotta'] if analytics else 0
+        
+        # Get pending payouts
+        wallet = await db.transactions.aggregate([
+            {"$match": {"master_id": master['id']}},
+            {"$group": {"_id": None, "total": {"$sum": "$amount"}}}
+        ]).to_list(1)
+        
+        pending_payouts = wallet[0]['total'] if wallet else 0
+        
+        # Send email
+        success = await email_service.send_daily_summary(
+            to_email=master['email'],
+            master_name=master['name'],
+            upcoming_bookings=upcoming,
+            time_protected=time_protected,
+            pending_payouts=pending_payouts
+        )
+        
+        if success:
+            sent_count += 1
+    
+    logger.info(f"✅ Daily summaries sent to {sent_count} masters")
+    return {"success": True, "sent_count": sent_count}
+
+# ============================================================================
 # HEALTH CHECK
 # ============================================================================
 
