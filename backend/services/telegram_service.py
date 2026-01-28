@@ -76,7 +76,7 @@ class TelegramService:
 📅 Date: {booking_date}
 🕐 Time: {booking_time}
 
-✨ TimeHold is protecting your time!
+✨ AuraSync is protecting your time!
         """
         
         return await self.send_message(chat_id, message)
@@ -95,7 +95,7 @@ class TelegramService:
 👤 Client: {client_name}
 💰 Your compensation: €{compensation}
 
-TimeHold has been captured and added to your wallet.
+AuraSync has been captured and added to your wallet.
         """
         
         return await self.send_message(chat_id, message)

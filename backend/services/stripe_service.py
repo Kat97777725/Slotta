@@ -1,6 +1,6 @@
 """Stripe Connect Integration
 
-Stripe Connect allows TimeHold to:
+Stripe Connect allows AuraSync to:
 1. Authorize payment holds (not charges)
 2. Capture holds on no-show
 3. Release holds on completion
