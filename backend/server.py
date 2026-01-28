@@ -122,6 +122,76 @@ async def get_service(service_id: str):
     
     return service
 
+@api_router.put("/services/{service_id}", response_model=Service)
+async def update_service(service_id: str, service_update: ServiceCreate):
+    """Update a service"""
+    
+    # Check if service exists
+    existing = await db.services.find_one({"id": service_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Service not found")
+    
+    # Calculate new base Slotta
+    base_slotta = SlottaEngine.calculate_base_slotta(
+        service_update.price,
+        service_update.duration_minutes
+    )
+    
+    # Update service
+    update_data = service_update.model_dump()
+    update_data['base_slotta'] = base_slotta
+    
+    await db.services.update_one(
+        {"id": service_id},
+        {"$set": update_data}
+    )
+    
+    updated_service = await db.services.find_one({"id": service_id}, {"_id": 0})
+    
+    logger.info(f"✅ Service updated: {service_id}")
+    return updated_service
+
+@api_router.delete("/services/{service_id}")
+async def delete_service(service_id: str):
+    """Delete a service"""
+    
+    # Check if service exists
+    existing = await db.services.find_one({"id": service_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Service not found")
+    
+    # Soft delete by setting active = false
+    await db.services.update_one(
+        {"id": service_id},
+        {"$set": {"active": False}}
+    )
+    
+    logger.info(f"✅ Service deleted: {service_id}")
+    return {"message": "Service deleted successfully"}
+
+@api_router.put("/masters/{master_id}", response_model=Master)
+async def update_master(master_id: str, master_data: dict):
+    """Update master profile"""
+    
+    # Check if master exists
+    existing = await db.masters.find_one({"id": master_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Master not found")
+    
+    # Update master
+    master_data['updated_at'] = datetime.utcnow()
+    await db.masters.update_one(
+        {"id": master_id},
+        {"$set": master_data}
+    )
+    
+    updated_master = await db.masters.find_one({"id": master_id}, {"_id": 0})
+    
+    logger.info(f"✅ Master updated: {master_id}")
+    return updated_master
+
+
+
 # ============================================================================
 # CLIENT ENDPOINTS
 # ============================================================================
