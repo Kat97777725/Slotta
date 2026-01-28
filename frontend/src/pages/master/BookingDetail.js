@@ -161,7 +161,12 @@ const BookingDetail = () => {
                     <Edit className="w-4 h-4 mr-2" />
                     Reschedule
                   </Button>
-                  <Button variant="outline" className="flex items-center justify-center">
+                  <Button 
+                    variant="outline" 
+                    className="flex items-center justify-center"
+                    onClick={() => setShowMessageModal(true)}
+                    data-testid="message-client-btn"
+                  >
                     <Mail className="w-4 h-4 mr-2" />
                     Message Client
                   </Button>
