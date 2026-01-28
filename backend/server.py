@@ -19,7 +19,7 @@ from models import (
     Client, ClientCreate, Booking, BookingCreate,
     Transaction, TransactionCreate, BookingStatus, ClientReliability
 )
-from slotta_engine import TimeHoldEngine
+from slotta_engine import SlottaEngine
 from services import email_service, telegram_service, stripe_service, google_calendar_service
 
 # Configure logging
