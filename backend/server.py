@@ -189,7 +189,7 @@ async def create_booking(booking_input: BookingCreate):
     )
     
     # Calculate risk score
-    risk_score = AuraSyncEngine.calculate_risk_score(
+    risk_score = TimeHoldEngine.calculate_risk_score(
         total_bookings=client['total_bookings'],
         completed_bookings=client['completed_bookings'],
         no_shows=client['no_shows'],
