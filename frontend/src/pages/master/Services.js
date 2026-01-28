@@ -6,9 +6,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { Input, Select } from '@/components/ui/Input';
 import { Plus, Edit, Trash, Shield, Clock, DollarSign } from 'lucide-react';
-import { servicesAPI } from '@/lib/api';
-
-const MASTER_ID = 'demo-master-123'; // TODO: Get from auth context
+import { servicesAPI, authAPI } from '@/lib/api';
 
 const Services = () => {
   const [services, setServices] = useState([]);
@@ -16,6 +14,8 @@ const Services = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingService, setEditingService] = useState(null);
+  const master = authAPI.getMaster();
+  const masterId = master?.id;
 
   // Form state
   const [formData, setFormData] = useState({
@@ -27,21 +27,14 @@ const Services = () => {
 
   // Load services
   const loadServices = async () => {
+    if (!masterId) return;
     try {
       setLoading(true);
-      const response = await servicesAPI.getByMaster(MASTER_ID, false);
-      setServices(response.data);
+      const response = await servicesAPI.getByMaster(masterId, false);
+      setServices(response.data || []);
     } catch (error) {
       console.error('Failed to load services:', error);
-      // Use mock data if API fails
-      setServices([
-        { id: 1, name: 'Balayage Hair Color', duration_minutes: 180, price: 150, base_slotta: 40, active: true },
-        { id: 2, name: 'Women\'s Haircut & Style', duration_minutes: 60, price: 60, base_slotta: 18, active: true },
-        { id: 3, name: 'Color Correction', duration_minutes: 240, price: 200, base_slotta: 60, active: true },
-        { id: 4, name: 'Keratin Treatment', duration_minutes: 150, price: 120, base_slotta: 35, active: true },
-        { id: 5, name: 'Men\'s Haircut', duration_minutes: 45, price: 40, base_slotta: 12, active: true },
-        { id: 6, name: 'Hair Extensions', duration_minutes: 300, price: 350, base_slotta: 90, active: false },
-      ]);
+      setServices([]);
     } finally {
       setLoading(false);
     }
