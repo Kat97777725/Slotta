@@ -460,6 +460,164 @@ async def create_booking(booking_input: BookingCreate):
     logger.info(f"✅ Booking created: {client['name']} → {master['name']} (Slotta: €{slotta_amount})")
     return booking
 
+@api_router.post("/bookings/with-payment")
+async def create_booking_with_payment(booking_input: BookingCreateWithPayment):
+    """Create booking with Stripe payment authorization (public booking flow)"""
+    
+    # Get service
+    service = await db.services.find_one({"id": booking_input.service_id}, {"_id": 0})
+    if not service:
+        raise HTTPException(status_code=404, detail="Service not found")
+    
+    # Get master
+    master = await db.masters.find_one({"id": booking_input.master_id}, {"_id": 0})
+    if not master:
+        raise HTTPException(status_code=404, detail="Master not found")
+    
+    # Get or create client
+    client = await db.clients.find_one({"email": booking_input.client_email}, {"_id": 0})
+    if not client:
+        # Create new client
+        new_client = Client(
+            email=booking_input.client_email,
+            name=booking_input.client_name,
+            phone=booking_input.client_phone,
+            reliability=ClientReliability.NEW
+        )
+        await db.clients.insert_one(new_client.model_dump())
+        client = new_client.model_dump()
+        logger.info(f"✅ New client created: {client['name']} ({client['email']})")
+    
+    # Calculate Slotta amount
+    slotta_amount = SlottaEngine.calculate_slotta(
+        price=service['price'],
+        duration_minutes=service['duration_minutes'],
+        client_reliability=client.get('reliability', 'new'),
+        no_shows=client.get('no_shows', 0),
+        cancellations=client.get('cancellations', 0)
+    )
+    
+    # Calculate risk score
+    risk_score = SlottaEngine.calculate_risk_score(
+        total_bookings=client.get('total_bookings', 0),
+        completed_bookings=client.get('completed_bookings', 0),
+        no_shows=client.get('no_shows', 0),
+        cancellations=client.get('cancellations', 0)
+    )
+    
+    # Create Stripe payment intent with hold
+    payment_intent = await stripe_service.create_payment_intent(
+        amount=slotta_amount,
+        customer_email=booking_input.client_email,
+        metadata={
+            'master_id': booking_input.master_id,
+            'service_id': booking_input.service_id,
+            'client_email': booking_input.client_email,
+            'booking_type': 'slotta_hold'
+        }
+    )
+    
+    if not payment_intent:
+        raise HTTPException(status_code=500, detail="Failed to create payment authorization")
+    
+    # Confirm the payment intent with the payment method
+    if stripe_service.enabled:
+        import stripe
+        try:
+            stripe.PaymentIntent.confirm(
+                payment_intent['id'],
+                payment_method=booking_input.payment_method_id
+            )
+            logger.info(f"✅ Payment authorized: {payment_intent['id']}")
+        except Exception as e:
+            logger.error(f"❌ Payment authorization failed: {e}")
+            raise HTTPException(status_code=400, detail=f"Payment authorization failed: {str(e)}")
+    
+    # Calculate reschedule deadline
+    reschedule_deadline = booking_input.booking_date - timedelta(hours=24)
+    
+    # Create booking
+    booking = Booking(
+        master_id=booking_input.master_id,
+        client_id=client['id'],
+        service_id=booking_input.service_id,
+        booking_date=booking_input.booking_date,
+        duration_minutes=service['duration_minutes'],
+        service_price=service['price'],
+        slotta_amount=slotta_amount,
+        risk_score=risk_score,
+        reschedule_deadline=reschedule_deadline,
+        stripe_payment_intent_id=payment_intent['id'],
+        payment_authorized=True,
+        status=BookingStatus.CONFIRMED,
+        notes=booking_input.notes
+    )
+    
+    await db.bookings.insert_one(booking.model_dump())
+    
+    # Update client stats
+    await db.clients.update_one(
+        {"id": client['id']},
+        {"$inc": {"total_bookings": 1}}
+    )
+    
+    # Send notifications
+    booking_date_str = booking_input.booking_date.strftime("%A, %B %d, %Y")
+    booking_time_str = booking_input.booking_date.strftime("%I:%M %p")
+    
+    # Email to client
+    await email_service.send_booking_confirmation(
+        to_email=booking_input.client_email,
+        client_name=booking_input.client_name,
+        master_name=master['name'],
+        service_name=service['name'],
+        booking_date=booking_date_str,
+        booking_time=booking_time_str,
+        slotta_amount=slotta_amount
+    )
+    
+    # Email to master
+    await email_service.send_master_new_booking(
+        to_email=master['email'],
+        master_name=master['name'],
+        client_name=booking_input.client_name,
+        service_name=service['name'],
+        booking_date=booking_date_str,
+        booking_time=booking_time_str
+    )
+    
+    # Telegram notification if enabled
+    if master.get('telegram_chat_id'):
+        await telegram_service.send_new_booking_alert(
+            chat_id=master['telegram_chat_id'],
+            client_name=booking_input.client_name,
+            service_name=service['name'],
+            booking_date=booking_date_str,
+            booking_time=booking_time_str,
+            slotta_amount=slotta_amount
+        )
+    
+    # Create Google Calendar event if connected
+    if master.get('google_calendar_token'):
+        end_time = booking_input.booking_date + timedelta(minutes=service['duration_minutes'])
+        await google_calendar_service.create_event(
+            access_token=master['google_calendar_token'],
+            summary=f"{service['name']} - {booking_input.client_name}",
+            start_time=booking_input.booking_date,
+            end_time=end_time,
+            description=f"Client: {booking_input.client_name}\nEmail: {booking_input.client_email}\nSlotta: €{slotta_amount}"
+        )
+    
+    logger.info(f"✅ Booking with payment created: {booking_input.client_name} → {master['name']} (Slotta: €{slotta_amount})")
+    
+    return {
+        "id": booking.id,
+        "status": "confirmed",
+        "slotta_amount": slotta_amount,
+        "payment_intent_id": payment_intent['id'],
+        "message": "Booking confirmed! Payment hold authorized."
+    }
+
 @api_router.get("/bookings/{booking_id}", response_model=Booking)
 async def get_booking(booking_id: str):
     """Get booking by ID"""
