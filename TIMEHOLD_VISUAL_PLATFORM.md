@@ -1,24 +1,24 @@
-# 🎨 TIMEHOLD - COMPLETE VISUAL PLATFORM
+# 🎨 AURASYNC - COMPLETE VISUAL PLATFORM
 
 ## ✅ WHAT'S BEEN BUILT
 
-A **fully visual, interactive prototype** of the entire TimeHold platform that demonstrates all features and user flows without requiring Stripe or Telegram integration yet.
+A **fully visual, interactive prototype** of the entire AuraSync platform that demonstrates all features and user flows without requiring Stripe or Telegram integration yet.
 
 ---
 
 ## 🌐 PLATFORM STRUCTURE
 
 ### 1. **LANDING PAGE** (`/`)
-**Purpose:** Marketing website that explains TimeHold to potential users
+**Purpose:** Marketing website that explains AuraSync to potential users
 
 **Sections Built:**
 - ✅ Hero Section - "Stop Losing Money to No-Shows"
 - ✅ Problem Section - Pain points every master faces
-- ✅ Insight Section - Why TimeHold is needed
-- ✅ Solution Section - How TimeHold works
+- ✅ Insight Section - Why AuraSync is needed
+- ✅ Solution Section - How AuraSync works
 - ✅ How It Works - 4-step visual process
 - ✅ Why Different - Comparison with competitors
-- ✅ AI & Smart Logic - Adaptive TimeHold explanation
+- ✅ AI & Smart Logic - Adaptive AuraSync explanation
 - ✅ Who It's For - Target professions (hair, nails, lash, tattoo, etc.)
 - ✅ Pricing Section - €29/month, 1 month free
 - ✅ Final CTA - Get started buttons
@@ -30,7 +30,7 @@ A **fully visual, interactive prototype** of the entire TimeHold platform that d
 - Purple & pink gradient accents
 - Mobile-first responsive design
 
-**Test It:** Navigate to `/` or click "TimeHold" logo
+**Test It:** Navigate to `/` or click "AuraSync" logo
 
 ---
 
@@ -40,19 +40,19 @@ A **fully visual, interactive prototype** of the entire TimeHold platform that d
 **Features Built:**
 - ✅ Master profile display (photo, bio, rating, specialty)
 - ✅ Services list with pricing and duration
-- ✅ TimeHold amount displayed for each service
+- ✅ AuraSync amount displayed for each service
 - ✅ Interactive time slot selection (7-day calendar)
 - ✅ Booking summary sidebar
-- ✅ TimeHold explanation popup
+- ✅ AuraSync explanation popup
 - ✅ Payment authorization screen (mock Stripe)
 - ✅ Booking confirmation screen
 
 **User Flow:**
 1. View master profile
-2. Select a service (shows TimeHold amount)
+2. Select a service (shows AuraSync amount)
 3. Pick date & time from available slots
 4. Review booking summary
-5. Proceed to payment (TimeHold authorization explained)
+5. Proceed to payment (AuraSync authorization explained)
 6. Enter card details (mocked UI)
 7. Confirm booking
 8. See confirmation screen
@@ -73,13 +73,13 @@ A **fully visual, interactive prototype** of the entire TimeHold platform that d
 
 - ✅ **Today's Bookings List:**
   - Client name & service
-  - Time slot & TimeHold amount
+  - Time slot & AuraSync amount
   - Status badges (confirmed, pending, high-risk)
   - Click to view details
 
 - ✅ **Quick Actions Cards:**
   - Manage calendar
-  - Adjust TimeHold
+  - Adjust AuraSync
   - View analytics
 
 **Test It:** Navigate to `/master/dashboard`
@@ -98,7 +98,7 @@ A **fully visual, interactive prototype** of the entire TimeHold platform that d
 - ✅ **Bookings List:**
   - Client info with avatar
   - Service name & details
-  - Date, time, price, TimeHold
+  - Date, time, price, AuraSync
   - Status badges
   - Click for detailed view
 
@@ -119,7 +119,7 @@ A **fully visual, interactive prototype** of the entire TimeHold platform that d
 - ✅ **Booking Information:**
   - Service details
   - Date, time, duration
-  - Price & TimeHold breakdown
+  - Price & AuraSync breakdown
   - Booking notes
 
 - ✅ **Client Information:**
@@ -179,19 +179,19 @@ A **fully visual, interactive prototype** of the entire TimeHold platform that d
 ---
 
 ### 7. **SERVICES MANAGEMENT** (`/master/services`)
-**Purpose:** Manage service offerings and TimeHold rules
+**Purpose:** Manage service offerings and AuraSync rules
 
 **Features Built:**
 - ✅ **Service Cards:**
   - Service name
   - Duration & price
-  - TimeHold amount
+  - AuraSync amount
   - Percentage of price
   - Active/inactive toggle
   - New clients only flag
   - Edit & delete buttons
 
-- ✅ **TimeHold Rules Explanation:**
+- ✅ **AuraSync Rules Explanation:**
   - Base formula (by service length)
   - Adjustment modifiers:
     - +20% for new clients
@@ -202,7 +202,7 @@ A **fully visual, interactive prototype** of the entire TimeHold platform that d
 
 - ✅ **Quick Stats:**
   - Active services count
-  - Average TimeHold
+  - Average AuraSync
   - Total protection value
 
 **Services Included:**
@@ -231,9 +231,9 @@ A **fully visual, interactive prototype** of the entire TimeHold platform that d
   - Reliability badge
 
 - ✅ **Reliability Tags:**
-  - **Reliable** (green) - 0-1 no-shows, -20% TimeHold
-  - **New Client** (yellow) - First bookings, +20% TimeHold
-  - **Needs Protection** (red) - 2+ no-shows, +30% TimeHold
+  - **Reliable** (green) - 0-1 no-shows, -20% AuraSync
+  - **New Client** (yellow) - First bookings, +20% AuraSync
+  - **Needs Protection** (red) - 2+ no-shows, +30% AuraSync
 
 - ✅ **Statistics:**
   - Total clients
@@ -243,7 +243,7 @@ A **fully visual, interactive prototype** of the entire TimeHold platform that d
 
 - ✅ **Explanation Section:**
   - What each tag means
-  - How it affects TimeHold
+  - How it affects AuraSync
 
 **Test It:** Navigate to `/master/clients`
 
@@ -266,7 +266,7 @@ A **fully visual, interactive prototype** of the entire TimeHold platform that d
 
 - ✅ **Transaction History:**
   - Payout transactions (red, negative)
-  - TimeHold credits (green, positive)
+  - AuraSync credits (green, positive)
   - Date, amount, reason
   - Status badges
   - Export CSV button
@@ -292,7 +292,7 @@ A **fully visual, interactive prototype** of the entire TimeHold platform that d
 - ✅ **Key Metrics Cards:**
   - Time protected (€2,450, +12%)
   - No-shows avoided (12, -3)
-  - Average TimeHold (€35, +€5)
+  - Average AuraSync (€35, +€5)
   - Active clients (48, +8)
 
 - ✅ **Time Protected Chart:**
@@ -323,7 +323,7 @@ A **fully visual, interactive prototype** of the entire TimeHold platform that d
 **Insights Provided:**
 - Peak times: 9-11 AM, 3-5 PM
 - 67% reliable clients
-- TimeHold effectiveness vs industry standard
+- AuraSync effectiveness vs industry standard
 
 **Test It:** Navigate to `/master/analytics`
 
@@ -340,7 +340,7 @@ A **fully visual, interactive prototype** of the entire TimeHold platform that d
   - Save changes button
 
 - ✅ **Booking Link:**
-  - Unique URL: `timehold.com/sophiabrown`
+  - Unique URL: `aurasync.com/sophiabrown`
   - Copy link button
   - Share button
 
@@ -386,7 +386,7 @@ A **fully visual, interactive prototype** of the entire TimeHold platform that d
     - Service name
     - Master name
     - Date & time
-    - Price & TimeHold
+    - Price & AuraSync
     - Status badge
     - Reschedule/Cancel buttons (for upcoming)
 
@@ -495,8 +495,8 @@ A **fully visual, interactive prototype** of the entire TimeHold platform that d
 
 ## ✨ KEY VISUAL FEATURES
 
-### 1. **TimeHold Explanation**
-Everywhere a TimeHold amount appears, there's clear explanation:
+### 1. **AuraSync Explanation**
+Everywhere a AuraSync amount appears, there's clear explanation:
 - "Held, not charged"
 - "Released when you arrive"
 - Visual breakdown of no-show split
@@ -564,7 +564,7 @@ Once you're happy with the visual design, these integrations are needed:
 - API endpoints to connect frontend to backend
 
 ### Phase 3: Logic
-- TimeHold calculation algorithm
+- AuraSync calculation algorithm
 - Risk scoring system
 - Reschedule rules engine
 - Notification triggers
@@ -640,7 +640,7 @@ Once you're happy with the visual design, these integrations are needed:
 
 ## 🎉 SUMMARY
 
-You now have a **complete, interactive visual prototype** of the TimeHold platform that demonstrates:
+You now have a **complete, interactive visual prototype** of the AuraSync platform that demonstrates:
 
 ✅ All user flows
 ✅ All features and screens
