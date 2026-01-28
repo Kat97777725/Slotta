@@ -1,57 +1,35 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { MasterLayout } from './Dashboard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { clientsAPI, authAPI } from '@/lib/api';
 import { Star, TrendingUp, TrendingDown, AlertTriangle, CheckCircle } from 'lucide-react';
 
 const Clients = () => {
-  const clients = [
-    { 
-      id: 1, 
-      name: 'Emma Wilson', 
-      email: 'emma@email.com', 
-      totalBookings: 12, 
-      completed: 12, 
-      noShows: 0, 
-      reliability: 'reliable',
-      lifetimeValue: 720,
-      lastVisit: '2025-02-01'
-    },
-    { 
-      id: 2, 
-      name: 'Olivia Smith', 
-      email: 'olivia@email.com', 
-      totalBookings: 8, 
-      completed: 7, 
-      noShows: 1, 
-      reliability: 'reliable',
-      lifetimeValue: 480,
-      lastVisit: '2025-01-28'
-    },
-    { 
-      id: 3, 
-      name: 'Sophie Taylor', 
-      email: 'sophie@email.com', 
-      totalBookings: 1, 
-      completed: 0, 
-      noShows: 0, 
-      reliability: 'new',
-      lifetimeValue: 0,
-      lastVisit: 'Never'
-    },
-    { 
-      id: 4, 
-      name: 'James Parker', 
-      email: 'james@email.com', 
-      totalBookings: 15, 
-      completed: 13, 
-      noShows: 2, 
-      reliability: 'needs-protection',
-      lifetimeValue: 520,
-      lastVisit: '2025-02-10'
-    },
-  ];
+  const [clients, setClients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const master = authAPI.getMaster();
+  const masterId = master?.id;
+
+  useEffect(() => {
+    if (masterId) {
+      loadClients();
+    }
+  }, [masterId]);
+
+  const loadClients = async () => {
+    try {
+      setLoading(true);
+      const response = await clientsAPI.getByMaster(masterId);
+      setClients(response.data || []);
+    } catch (error) {
+      console.error('Failed to load clients:', error);
+      setClients([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const reliabilityConfig = {
     reliable: { variant: 'success', icon: CheckCircle, label: 'Reliable' },
@@ -85,51 +63,57 @@ const Clients = () => {
           <CardTitle>All Clients</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {clients.map((client) => {
-              const config = reliabilityConfig[client.reliability];
-              return (
-                <div
-                  key={client.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition"
-                  data-testid={`client-${client.id}`}
-                >
-                  <div className="flex items-center space-x-4 flex-1">
-                    <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center font-semibold text-purple-600">
-                      {client.name.split(' ').map(n => n[0]).join('')}
+          {loading ? (
+            <div className="text-center py-8 text-gray-500">Loading clients...</div>
+          ) : clients.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">No clients yet. They'll appear here after their first booking.</div>
+          ) : (
+            <div className="space-y-4">
+              {clients.map((client) => {
+                const config = reliabilityConfig[client.reliability] || reliabilityConfig.new;
+                return (
+                  <div
+                    key={client.id}
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition"
+                    data-testid={`client-${client.id}`}
+                  >
+                    <div className="flex items-center space-x-4 flex-1">
+                      <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center font-semibold text-purple-600">
+                        {client.name?.split(' ').map(n => n[0]).join('') || '?'}
+                      </div>
+                      <div>
+                        <div className="font-semibold text-lg">{client.name}</div>
+                        <div className="text-sm text-gray-500">{client.email}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="font-semibold text-lg">{client.name}</div>
-                      <div className="text-sm text-gray-500">{client.email}</div>
-                    </div>
-                  </div>
 
-                  <div className="flex items-center space-x-8">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-600">{client.totalBookings}</div>
-                      <div className="text-xs text-gray-500">Bookings</div>
+                    <div className="flex items-center space-x-8">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-purple-600">{client.total_bookings || 0}</div>
+                        <div className="text-xs text-gray-500">Bookings</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{client.completed_bookings || 0}</div>
+                        <div className="text-xs text-gray-500">Completed</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-red-600">{client.no_shows || 0}</div>
+                        <div className="text-xs text-gray-500">No-Shows</div>
+                      </div>
+                      <div className="text-right min-w-[120px]">
+                        <div className="font-semibold text-lg">€{client.wallet_balance || 0}</div>
+                        <div className="text-xs text-gray-500">Wallet Balance</div>
+                      </div>
+                      <Badge variant={config.variant} className="min-w-[140px] justify-center">
+                        <config.icon className="w-3 h-3 mr-1" />
+                        {config.label}
+                      </Badge>
                     </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">{client.completed}</div>
-                      <div className="text-xs text-gray-500">Completed</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-red-600">{client.noShows}</div>
-                      <div className="text-xs text-gray-500">No-Shows</div>
-                    </div>
-                    <div className="text-right min-w-[120px]">
-                      <div className="font-semibold text-lg">€{client.lifetimeValue}</div>
-                      <div className="text-xs text-gray-500">Lifetime Value</div>
-                    </div>
-                    <Badge variant={config.variant} className="min-w-[140px] justify-center">
-                      <config.icon className="w-3 h-3 mr-1" />
-                      {config.label}
-                    </Badge>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
 
