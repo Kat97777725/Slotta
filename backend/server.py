@@ -331,7 +331,7 @@ async def mark_booking_no_show(booking_id: str):
         raise HTTPException(status_code=404, detail="Booking not found")
     
     # Calculate split
-    split = AuraSyncEngine.calculate_no_show_split(booking['aurasync_amount'])
+    split = TimeHoldEngine.calculate_no_show_split(booking['aurasync_amount'])
     
     # Update booking status
     await db.bookings.update_one(
