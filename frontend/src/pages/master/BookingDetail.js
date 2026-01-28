@@ -5,53 +5,61 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import { Textarea } from '@/components/ui/Input';
-import { messagesAPI, bookingsAPI, authAPI } from '@/lib/api';
+import { messagesAPI, bookingsAPI, servicesAPI, clientsAPI, authAPI } from '@/lib/api';
 import { 
   Clock, Calendar, DollarSign, Shield, User, Phone, Mail, 
-  MapPin, AlertTriangle, CheckCircle, XCircle, Edit 
+  AlertTriangle, CheckCircle, XCircle, Edit, MessageCircle, Loader2
 } from 'lucide-react';
 
 const BookingDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [showActions, setShowActions] = useState(false);
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [messageText, setMessageText] = useState('');
   const [loading, setLoading] = useState(true);
   const [sendingMessage, setSendingMessage] = useState(false);
   const [booking, setBooking] = useState(null);
+  const [service, setService] = useState(null);
+  const [client, setClient] = useState(null);
   
   const master = authAPI.getMaster();
   const masterId = master?.id;
 
   useEffect(() => {
     if (id) {
-      loadBooking();
+      loadBookingDetails();
     }
   }, [id]);
 
-  const loadBooking = async () => {
+  const loadBookingDetails = async () => {
     try {
       setLoading(true);
-      const response = await bookingsAPI.getById(id);
-      setBooking(response.data);
+      
+      // Get booking
+      const bookingRes = await bookingsAPI.getById(id);
+      const bookingData = bookingRes.data;
+      setBooking(bookingData);
+      
+      // Get service details
+      try {
+        const serviceRes = await servicesAPI.getById(bookingData.service_id);
+        setService(serviceRes.data);
+      } catch (e) {
+        console.error('Failed to load service:', e);
+      }
+      
+      // Get client details
+      try {
+        const clientRes = await clientsAPI.getById(bookingData.client_id);
+        setClient(clientRes.data);
+      } catch (e) {
+        console.error('Failed to load client:', e);
+      }
+      
     } catch (error) {
       console.error('Failed to load booking:', error);
-      // Use mock data for display
-      setBooking({
-        id: id,
-        client_id: 'client-123',
-        service_id: 'service-123',
-        booking_date: new Date().toISOString(),
-        duration_minutes: 180,
-        service_price: 150,
-        slotta_amount: 40,
-        status: 'confirmed',
-        risk_score: 15,
-        notes: '',
-        created_at: new Date().toISOString()
-      });
+      alert('Failed to load booking details');
+      navigate('/master/bookings');
     } finally {
       setLoading(false);
     }
@@ -61,7 +69,14 @@ const BookingDetail = () => {
     confirmed: 'success',
     pending: 'warning',
     completed: 'info',
+    cancelled: 'danger',
     'no-show': 'danger',
+  };
+
+  const reliabilityColors = {
+    reliable: 'success',
+    new: 'warning',
+    'needs-protection': 'danger',
   };
 
   const handleComplete = async () => {
@@ -82,7 +97,7 @@ const BookingDetail = () => {
     }
 
     try {
-      setLoading(true);
+      setSendingMessage(true);
       await messagesAPI.sendToClient({
         master_id: masterId,
         client_id: booking.client_id,
@@ -97,12 +112,12 @@ const BookingDetail = () => {
       console.error('Failed to send message:', error);
       alert('❌ Failed to send message. Please try again.');
     } finally {
-      setLoading(false);
+      setSendingMessage(false);
     }
   };
 
   const handleNoShow = async () => {
-    if (window.confirm('Mark this booking as no-show? Slotta will be captured.')) {
+    if (window.confirm('Mark this booking as no-show? The Slotta hold will be captured.')) {
       try {
         const response = await bookingsAPI.noShow(id);
         alert(`✅ No-show processed!\nMaster compensation: €${response.data.master_compensation}\nClient wallet credit: €${response.data.client_wallet_credit}`);
@@ -114,10 +129,20 @@ const BookingDetail = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <MasterLayout active="bookings" title="Booking Details">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 text-purple-600 animate-spin" />
+        </div>
+      </MasterLayout>
+    );
+  }
+
   if (!booking) {
     return (
       <MasterLayout active="bookings" title="Booking Details">
-        <div className="text-center py-12 text-gray-500">Loading booking details...</div>
+        <div className="text-center py-12 text-gray-500">Booking not found</div>
       </MasterLayout>
     );
   }
@@ -138,7 +163,7 @@ const BookingDetail = () => {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>Booking Information</CardTitle>
-                  <Badge variant={statusColors[booking.status]}>
+                  <Badge variant={statusColors[booking.status] || 'default'}>
                     {booking.status}
                   </Badge>
                 </div>
@@ -148,18 +173,19 @@ const BookingDetail = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <div className="text-sm text-gray-500 mb-1">Service</div>
-                      <div className="font-semibold">{booking.service}</div>
+                      <div className="font-semibold">{service?.name || 'Service'}</div>
                     </div>
                     <div>
                       <div className="text-sm text-gray-500 mb-1">Duration</div>
-                      <div className="font-semibold">{booking.duration}</div>
+                      <div className="font-semibold">{booking.duration_minutes || service?.duration_minutes || 60} minutes</div>
                     </div>
                     <div>
                       <div className="text-sm text-gray-500 mb-1">Date & Time</div>
                       <div className="font-semibold flex items-center space-x-2">
                         <Calendar className="w-4 h-4 text-gray-400" />
                         <span>
-                          {new Date(booking.date).toLocaleDateString('en-GB', {
+                          {bookingDate.toLocaleDateString('en-GB', {
+                            weekday: 'long',
                             day: 'numeric',
                             month: 'long',
                             year: 'numeric',
@@ -168,77 +194,70 @@ const BookingDetail = () => {
                       </div>
                       <div className="font-semibold flex items-center space-x-2 mt-1">
                         <Clock className="w-4 h-4 text-gray-400" />
-                        <span>{booking.time}</span>
+                        <span>{bookingDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</span>
                       </div>
                     </div>
                     <div>
                       <div className="text-sm text-gray-500 mb-1">Booked On</div>
-                      <div className="font-semibold">{booking.bookedAt}</div>
+                      <div className="font-semibold">
+                        {booking.created_at ? new Date(booking.created_at).toLocaleDateString('en-GB') : 'N/A'}
+                      </div>
                     </div>
                   </div>
 
                   <div className="border-t pt-4">
-                    <div className="flex justify-between mb-2">
-                      <span className="text-gray-600">Service Price</span>
-                      <span className="font-semibold">€{booking.price}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center space-x-2">
-                        <Shield className="w-4 h-4 text-purple-600" />
-                        <span className="font-medium text-purple-600">Slotta Amount</span>
-                      </div>
-                      <span className="font-bold text-lg text-purple-600">€{booking.slotta}</span>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">
-                      Authorized on client's card. Will be released when they arrive.
-                    </p>
+                    <div className="text-sm text-gray-500 mb-1">Notes</div>
+                    <p className="text-gray-700">{booking.notes || 'No notes added'}</p>
                   </div>
-
-                  {booking.notes && (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                      <div className="font-semibold text-sm mb-2">Notes</div>
-                      <p className="text-sm text-gray-700">{booking.notes}</p>
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>
 
-            {/* Actions */}
+            {/* Client Information */}
             <Card>
               <CardHeader>
-                <CardTitle>Actions</CardTitle>
+                <CardTitle>Client Information</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  <Button variant="outline" className="flex items-center justify-center">
-                    <Edit className="w-4 h-4 mr-2" />
-                    Reschedule
-                  </Button>
+                <div className="flex items-start space-x-4">
+                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center">
+                    <User className="w-8 h-8 text-purple-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold mb-2">{client?.name || 'Client'}</h3>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2 text-gray-600">
+                        <Mail className="w-4 h-4" />
+                        <span>{client?.email || 'No email'}</span>
+                      </div>
+                      {client?.phone && (
+                        <div className="flex items-center space-x-2 text-gray-600">
+                          <Phone className="w-4 h-4" />
+                          <span>{client.phone}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <Badge variant={reliabilityColors[client?.reliability] || 'warning'} className="mb-2">
+                      {client?.reliability === 'reliable' && <CheckCircle className="w-3 h-3 mr-1" />}
+                      {client?.reliability === 'needs-protection' && <AlertTriangle className="w-3 h-3 mr-1" />}
+                      {client?.reliability || 'New'}
+                    </Badge>
+                    <div className="text-sm text-gray-500">
+                      {client?.total_bookings || 0} bookings • {client?.no_shows || 0} no-shows
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-4 pt-4 border-t">
                   <Button 
                     variant="outline" 
-                    className="flex items-center justify-center"
                     onClick={() => setShowMessageModal(true)}
                     data-testid="message-client-btn"
                   >
-                    <Mail className="w-4 h-4 mr-2" />
+                    <MessageCircle className="w-4 h-4 mr-2" />
                     Message Client
-                  </Button>
-                  <Button 
-                    variant="default" 
-                    className="flex items-center justify-center bg-green-600 hover:bg-green-700"
-                    onClick={handleComplete}
-                  >
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Mark Complete
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="flex items-center justify-center border-red-600 text-red-600 hover:bg-red-50"
-                    onClick={handleNoShow}
-                  >
-                    <XCircle className="w-4 h-4 mr-2" />
-                    Mark No-Show
                   </Button>
                 </div>
               </CardContent>
@@ -247,67 +266,34 @@ const BookingDetail = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Client Info */}
-            <Card>
+            {/* Pricing Card */}
+            <Card className="bg-gradient-to-br from-purple-50 to-pink-50">
               <CardHeader>
-                <CardTitle>Client Information</CardTitle>
+                <CardTitle>Pricing & Protection</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-                    EW
-                  </div>
-                  <div>
-                    <div className="font-semibold">{booking.client.name}</div>
-                    <Badge variant={reliabilityColors[booking.client.reliability]} className="text-xs">
-                      {booking.client.reliability}
-                    </Badge>
-                  </div>
-                </div>
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-center space-x-2 text-gray-600">
-                    <Mail className="w-4 h-4" />
-                    <span>{booking.client.email}</span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-gray-600">
-                    <Phone className="w-4 h-4" />
-                    <span>{booking.client.phone}</span>
-                  </div>
-                </div>
-                <div className="mt-4 pt-4 border-t grid grid-cols-2 gap-2 text-center">
-                  <div>
-                    <div className="text-2xl font-bold text-purple-600">{booking.client.bookingHistory}</div>
-                    <div className="text-xs text-gray-500">Bookings</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-green-600">{booking.client.noShows}</div>
-                    <div className="text-xs text-gray-500">No-Shows</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Risk Assessment */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Risk Assessment</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Risk Level</span>
-                    <Badge variant="success">Low</Badge>
+                    <span className="text-gray-600">Service Price</span>
+                    <span className="text-2xl font-bold">€{booking.service_price || service?.price || 0}</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Score</span>
-                    <span className="font-semibold">15/100</span>
+                  <div className="flex items-center justify-between border-t pt-4">
+                    <div className="flex items-center space-x-2 text-purple-600">
+                      <Shield className="w-5 h-5" />
+                      <span className="font-medium">Slotta Amount</span>
+                    </div>
+                    <span className="text-2xl font-bold text-purple-600">€{booking.slotta_amount || 0}</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-green-500 h-2 rounded-full" style={{ width: '15%' }}></div>
+                  <div className="flex items-center justify-between text-sm text-gray-500">
+                    <span>Risk Score</span>
+                    <span>{booking.risk_score || 0}%</span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-3">
-                    Reliable client with excellent booking history. Low risk of no-show.
-                  </p>
+                  {booking.stripe_payment_intent_id && (
+                    <div className="flex items-center space-x-2 text-green-600 text-sm">
+                      <CheckCircle className="w-4 h-4" />
+                      <span>Payment Authorized</span>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -315,80 +301,100 @@ const BookingDetail = () => {
             {/* Reschedule Policy */}
             <Card>
               <CardHeader>
-                <CardTitle>Reschedule Window</CardTitle>
+                <CardTitle>Reschedule Policy</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <div className="text-sm font-medium text-blue-900 mb-1">
-                    Free reschedule until:
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Free Reschedule Until</span>
+                    <span className="font-semibold">
+                      {booking.reschedule_deadline 
+                        ? new Date(booking.reschedule_deadline).toLocaleDateString('en-GB', {
+                            day: 'numeric',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })
+                        : 'N/A'}
+                    </span>
                   </div>
-                  <div className="font-semibold text-blue-600">
-                    {new Date(booking.rescheduleDeadline).toLocaleDateString('en-GB', {
-                      day: 'numeric',
-                      month: 'long',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </div>
-                  <p className="text-xs text-blue-700 mt-2">
-                    After this time, reschedule requires approval.
-                  </p>
+                  {booking.reschedule_deadline && new Date() > new Date(booking.reschedule_deadline) && (
+                    <div className="flex items-center space-x-2 text-yellow-600">
+                      <AlertTriangle className="w-4 h-4" />
+                      <span>Reschedule deadline passed</span>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
+
+            {/* Actions */}
+            {(booking.status === 'confirmed' || booking.status === 'pending') && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Actions</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Button 
+                    className="w-full" 
+                    onClick={handleComplete}
+                    data-testid="complete-booking-btn"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Mark as Completed
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="w-full text-red-600 border-red-600 hover:bg-red-50"
+                    onClick={handleNoShow}
+                    data-testid="no-show-btn"
+                  >
+                    <XCircle className="w-4 h-4 mr-2" />
+                    Mark as No-Show
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>
 
-
-      {/* Message Client Modal */}
-      <Modal 
-        isOpen={showMessageModal} 
-        onClose={() => setShowMessageModal(false)} 
-        title="Message Client"
-      >
-        <div className="space-y-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-900">
-              <strong>To:</strong> {booking.client.name} ({booking.client.email})
-            </p>
+      {/* Message Modal */}
+      {showMessageModal && (
+        <Modal onClose={() => setShowMessageModal(false)}>
+          <div className="p-6">
+            <h3 className="text-xl font-bold mb-4">Message {client?.name || 'Client'}</h3>
+            <textarea
+              value={messageText}
+              onChange={(e) => setMessageText(e.target.value)}
+              className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 mb-4"
+              rows="4"
+              placeholder="Type your message here..."
+              data-testid="message-textarea"
+            />
+            <div className="flex space-x-3">
+              <Button variant="outline" onClick={() => setShowMessageModal(false)} className="flex-1">
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSendMessage} 
+                className="flex-1"
+                disabled={sendingMessage}
+                data-testid="send-message-btn"
+              >
+                {sendingMessage ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  'Send Message'
+                )}
+              </Button>
+            </div>
           </div>
-
-          <Textarea
-            label="Your Message"
-            placeholder="Hi Emma, just wanted to confirm your appointment..."
-            value={messageText}
-            onChange={(e) => setMessageText(e.target.value)}
-            rows={6}
-            required
-          />
-
-          <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-xs text-gray-600">
-              💡 This message will be sent via email. The client can reply directly to your email.
-            </p>
-          </div>
-
-          <div className="flex space-x-4 pt-4">
-            <Button 
-              variant="outline" 
-              onClick={() => setShowMessageModal(false)} 
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleSendMessage} 
-              className="flex-1" 
-              disabled={loading || !messageText.trim()}
-              data-testid="send-message-btn"
-            >
-              {loading ? 'Sending...' : 'Send Message'}
-            </Button>
-          </div>
-        </div>
-      </Modal>
-
+        </Modal>
+      )}
     </MasterLayout>
   );
 };
