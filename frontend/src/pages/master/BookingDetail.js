@@ -64,15 +64,15 @@ const BookingDetail = () => {
     'no-show': 'danger',
   };
 
-  const reliabilityColors = {
-    reliable: 'success',
-    new: 'warning',
-    'needs-protection': 'danger',
-  };
-
-  const handleComplete = () => {
-    alert('Booking marked as completed!');
-    navigate('/master/bookings');
+  const handleComplete = async () => {
+    try {
+      await bookingsAPI.complete(id);
+      alert('✅ Booking marked as completed!');
+      navigate('/master/bookings');
+    } catch (error) {
+      console.error('Failed to complete booking:', error);
+      alert('❌ Failed to update booking');
+    }
   };
 
   const handleSendMessage = async () => {
@@ -84,8 +84,8 @@ const BookingDetail = () => {
     try {
       setLoading(true);
       await messagesAPI.sendToClient({
-        master_id: MASTER_ID,
-        client_id: booking.client.id || 'demo-client-123',
+        master_id: masterId,
+        client_id: booking.client_id,
         booking_id: id,
         message: messageText
       });
@@ -101,14 +101,28 @@ const BookingDetail = () => {
     }
   };
 
-  };
-
-  const handleNoShow = () => {
-    if (confirm('Mark this booking as no-show? Slotta will be captured.')) {
-      alert('Slotta captured: €25 to your wallet, €15 client credit');
-      navigate('/master/bookings');
+  const handleNoShow = async () => {
+    if (window.confirm('Mark this booking as no-show? Slotta will be captured.')) {
+      try {
+        const response = await bookingsAPI.noShow(id);
+        alert(`✅ No-show processed!\nMaster compensation: €${response.data.master_compensation}\nClient wallet credit: €${response.data.client_wallet_credit}`);
+        navigate('/master/bookings');
+      } catch (error) {
+        console.error('Failed to mark no-show:', error);
+        alert('❌ Failed to process no-show');
+      }
     }
   };
+
+  if (!booking) {
+    return (
+      <MasterLayout active="bookings" title="Booking Details">
+        <div className="text-center py-12 text-gray-500">Loading booking details...</div>
+      </MasterLayout>
+    );
+  }
+
+  const bookingDate = booking.booking_date ? new Date(booking.booking_date) : new Date();
 
   return (
     <MasterLayout active="bookings" title="Booking Details">
