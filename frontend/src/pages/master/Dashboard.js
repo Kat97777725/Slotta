@@ -25,7 +25,7 @@ const Sidebar = ({ active }) => {
       <div className="flex items-center space-x-2 mb-8">
         <Clock className="w-8 h-8 text-purple-600" />
         <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-          AuraSync
+          Slotta
         </span>
       </div>
       <nav className="space-y-2">
@@ -177,7 +177,7 @@ const Dashboard = () => {
         </Card>
         <Card className="p-6 cursor-pointer hover:shadow-lg transition" onClick={() => navigate('/master/services')}>
           <Shield className="w-8 h-8 text-purple-600 mb-3" />
-          <h3 className="font-semibold mb-2">Adjust AuraSync</h3>
+          <h3 className="font-semibold mb-2">Adjust Slotta</h3>
           <p className="text-sm text-gray-600">Update service protection</p>
         </Card>
         <Card className="p-6 cursor-pointer hover:shadow-lg transition" onClick={() => navigate('/master/analytics')}>

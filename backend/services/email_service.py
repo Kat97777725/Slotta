@@ -60,10 +60,10 @@ class EmailService:
                         <p><strong>With:</strong> {master_name}</p>
                         <p><strong>Date:</strong> {booking_date}</p>
                         <p><strong>Time:</strong> {booking_time}</p>
-                        <p style="color: #8b5cf6;"><strong>AuraSync:</strong> €{aurasync_amount} (held, not charged)</p>
+                        <p style="color: #8b5cf6;"><strong>Slotta:</strong> €{aurasync_amount} (held, not charged)</p>
                     </div>
                     <p>See you soon!</p>
-                    <p style="color: #6b7280; font-size: 12px;">AuraSync - Protect your time, fairly.</p>
+                    <p style="color: #6b7280; font-size: 12px;">Slotta - Protect your time, fairly.</p>
                 </div>
                 ''')
             
@@ -156,7 +156,7 @@ class EmailService:
                         <p style="color: #10b981;"><strong>Your compensation:</strong> €{compensation}</p>
                         <p style="color: #6b7280;">Client wallet credit: €{wallet_credit}</p>
                     </div>
-                    <p>AuraSync has been captured and will be added to your wallet.</p>
+                    <p>Slotta has been captured and will be added to your wallet.</p>
                 </div>
                 ''')
             

@@ -80,7 +80,7 @@ const Settings = () => {
             <Button>Share</Button>
           </div>
           <p className="text-sm text-gray-600 mt-3">
-            Share this link with clients for easy booking. It's your unique AuraSync booking page.
+            Share this link with clients for easy booking. It's your unique Slotta booking page.
           </p>
         </CardContent>
       </Card>

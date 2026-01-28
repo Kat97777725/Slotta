@@ -77,7 +77,7 @@ const BookingPage = () => {
               <span className="font-semibold">{master.name}</span>
             </div>
             <div className="flex justify-between pt-3 border-t">
-              <span className="text-gray-600">AuraSync Amount</span>
+              <span className="text-gray-600">Slotta Amount</span>
               <span className="font-semibold text-purple-600">
                 €{services.find(s => s.id === selectedService)?.timehold} (held, not charged)
               </span>
@@ -108,7 +108,7 @@ const BookingPage = () => {
               <div className="flex items-start space-x-3 mb-4">
                 <Shield className="w-6 h-6 text-purple-600 flex-shrink-0 mt-1" />
                 <div>
-                  <h3 className="font-semibold text-purple-900 mb-2">How AuraSync Works</h3>
+                  <h3 className="font-semibold text-purple-900 mb-2">How Slotta Works</h3>
                   <p className="text-sm text-purple-700 leading-relaxed">
                     We'll authorize <strong>€{service?.timehold}</strong> on your card to protect {master.name}'s time.
                     This amount is <strong>held, not charged</strong>. If you show up, it's released immediately.
@@ -138,11 +138,11 @@ const BookingPage = () => {
                   <span className="text-lg font-bold">€{service?.price}</span>
                 </div>
                 <div className="flex justify-between text-purple-600">
-                  <span className="font-medium">AuraSync Amount</span>
+                  <span className="font-medium">Slotta Amount</span>
                   <span className="text-lg font-bold">€{service?.timehold}</span>
                 </div>
                 <p className="text-xs text-gray-500 pt-2">
-                  Full payment of €{service?.price} due at appointment. AuraSync released when you arrive.
+                  Full payment of €{service?.price} due at appointment. Slotta released when you arrive.
                 </p>
               </div>
             </div>
@@ -192,7 +192,7 @@ const BookingPage = () => {
           <div className="flex items-center space-x-2">
             <Clock className="w-6 h-6 text-purple-600" />
             <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              AuraSync
+              Slotta
             </span>
           </div>
           <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
@@ -225,7 +225,7 @@ const BookingPage = () => {
               <p className="text-gray-600 mb-4">{master.bio}</p>
               <Badge variant="purple">
                 <Shield className="w-3 h-3 mr-1" />
-                AuraSync Protected
+                Slotta Protected
               </Badge>
             </div>
           </div>
@@ -259,7 +259,7 @@ const BookingPage = () => {
                     <div className="inline-flex items-center space-x-2 bg-purple-100 px-3 py-1 rounded-full">
                       <Shield className="w-3 h-3 text-purple-600" />
                       <span className="text-xs font-medium text-purple-700">
-                        AuraSync: €{service.timehold}
+                        Slotta: €{service.timehold}
                       </span>
                     </div>
                   </div>
@@ -336,7 +336,7 @@ const BookingPage = () => {
                       </span>
                     </div>
                     <div className="flex justify-between text-purple-600">
-                      <span className="font-medium">AuraSync</span>
+                      <span className="font-medium">Slotta</span>
                       <span className="font-bold">
                         €{services.find(s => s.id === selectedService)?.timehold}
                       </span>
@@ -346,7 +346,7 @@ const BookingPage = () => {
                     <div className="flex items-start space-x-2">
                       <Info className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" />
                       <p className="text-xs text-purple-700">
-                        Only AuraSync amount will be authorized. Released when you arrive.
+                        Only Slotta amount will be authorized. Released when you arrive.
                       </p>
                     </div>
                   </div>

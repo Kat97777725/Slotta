@@ -64,7 +64,7 @@ const ClientPortal = () => {
           <div className="flex items-center space-x-2">
             <Clock className="w-6 h-6 text-purple-600" />
             <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              AuraSync
+              Slotta
             </span>
           </div>
           <div className="flex items-center space-x-4">
@@ -164,7 +164,7 @@ const ClientPortal = () => {
                         <div>
                           <div className="text-sm text-gray-600">Service Price: €{booking.price}</div>
                           <div className="text-sm text-purple-600 font-medium">
-                            AuraSync: €{booking.aurasync} (held, not charged)
+                            Slotta: €{booking.aurasync} (held, not charged)
                           </div>
                         </div>
                         {booking.status === 'confirmed' && (
@@ -217,7 +217,7 @@ const ClientPortal = () => {
                     <div>
                       <h4 className="font-semibold mb-1">Fair No-Show Policy</h4>
                       <p className="text-sm text-gray-600">
-                        If you miss an appointment, part of the AuraSync goes to compensate the master, 
+                        If you miss an appointment, part of the Slotta goes to compensate the master, 
                         and the rest is credited to your wallet for future use.
                       </p>
                     </div>

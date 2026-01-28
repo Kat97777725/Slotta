@@ -96,7 +96,7 @@ const Bookings = () => {
                       <span className="font-semibold">{booking.time}</span>
                     </div>
                     <div className="text-sm text-gray-500">
-                      €{booking.price} • AuraSync: €{booking.aurasync}
+                      €{booking.price} • Slotta: €{booking.aurasync}
                     </div>
                   </div>
                   <Badge variant={statusColors[booking.status]} className="min-w-[100px] justify-center">

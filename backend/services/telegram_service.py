@@ -76,7 +76,7 @@ class TelegramService:
 📅 Date: {booking_date}
 🕐 Time: {booking_time}
 
-✨ AuraSync is protecting your time!
+✨ Slotta is protecting your time!
         """
         
         return await self.send_message(chat_id, message)
@@ -95,7 +95,7 @@ class TelegramService:
 👤 Client: {client_name}
 💰 Your compensation: €{compensation}
 
-AuraSync has been captured and added to your wallet.
+Slotta has been captured and added to your wallet.
         """
         
         return await self.send_message(chat_id, message)

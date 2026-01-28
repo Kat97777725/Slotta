@@ -56,8 +56,8 @@ const BookingDetail = () => {
   };
 
   const handleNoShow = () => {
-    if (confirm('Mark this booking as no-show? AuraSync will be captured.')) {
-      alert('AuraSync captured: €25 to your wallet, €15 client credit');
+    if (confirm('Mark this booking as no-show? Slotta will be captured.')) {
+      alert('Slotta captured: €25 to your wallet, €15 client credit');
       navigate('/master/bookings');
     }
   };
@@ -123,7 +123,7 @@ const BookingDetail = () => {
                     <div className="flex justify-between items-center">
                       <div className="flex items-center space-x-2">
                         <Shield className="w-4 h-4 text-purple-600" />
-                        <span className="font-medium text-purple-600">AuraSync Amount</span>
+                        <span className="font-medium text-purple-600">Slotta Amount</span>
                       </div>
                       <span className="font-bold text-lg text-purple-600">€{booking.aurasync}</span>
                     </div>

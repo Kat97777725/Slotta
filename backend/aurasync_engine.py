@@ -1,6 +1,6 @@
-"""AuraSync Calculation Engine
+"""Slotta Calculation Engine
 
-This module calculates the fair AuraSync amount based on:
+This module calculates the fair Slotta amount based on:
 - Service price and duration
 - Client reliability
 - Booking patterns
@@ -32,7 +32,7 @@ class TimeHoldEngine:
     
     @classmethod
     def calculate_base_aurasync(cls, price: float, duration_minutes: int) -> float:
-        """Calculate base AuraSync based on service price and duration"""
+        """Calculate base Slotta based on service price and duration"""
         
         if duration_minutes < 60:
             percentage = cls.BASE_PERCENTAGES['short']
@@ -54,7 +54,7 @@ class TimeHoldEngine:
         is_peak_slot: bool = False,
         booking_lead_time_hours: Optional[int] = None
     ) -> float:
-        """Calculate final AuraSync amount with all modifiers"""
+        """Calculate final Slotta amount with all modifiers"""
         
         # Start with base
         base = cls.calculate_base_aurasync(price, duration_minutes)
@@ -94,7 +94,7 @@ class TimeHoldEngine:
     
     @classmethod
     def calculate_no_show_split(cls, aurasync_amount: float) -> dict:
-        """Calculate how AuraSync is split on no-show
+        """Calculate how Slotta is split on no-show
         
         Returns:
             dict: {'master_compensation': float, 'client_wallet_credit': float}

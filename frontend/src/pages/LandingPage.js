@@ -20,7 +20,7 @@ const LandingPage = () => {
           <div className="flex items-center space-x-2">
             <Clock className="w-8 h-8 text-purple-600" />
             <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              AuraSync
+              Slotta
             </span>
           </div>
           <div className="flex items-center space-x-6">
@@ -53,7 +53,7 @@ const LandingPage = () => {
           </h1>
           
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto" data-testid="hero-subtitle">
-            AuraSync protects beauty professionals' time & income from no-shows by holding client money fairly—
+            Slotta protects beauty professionals' time & income from no-shows by holding client money fairly—
             without forcing full upfront payments.
           </p>
           
@@ -140,7 +140,7 @@ const LandingPage = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4" data-testid="solution-title">
-              Enter AuraSync
+              Enter Slotta
             </h2>
             <p className="text-xl text-gray-700">
               The fair way to protect your time without losing clients
@@ -157,7 +157,7 @@ const LandingPage = () => {
                   <div>
                     <h3 className="text-lg font-semibold mb-2">Hold, Don't Charge</h3>
                     <p className="text-gray-600">
-                      We authorize a AuraSync amount on their card—but don't take their money unless they no-show.
+                      We authorize a Slotta amount on their card—but don't take their money unless they no-show.
                     </p>
                   </div>
                 </div>
@@ -168,7 +168,7 @@ const LandingPage = () => {
                   <div>
                     <h3 className="text-lg font-semibold mb-2">Smart, Not Fixed</h3>
                     <p className="text-gray-600">
-                      AuraSync adapts based on service value, client reliability, and booking patterns.
+                      Slotta adapts based on service value, client reliability, and booking patterns.
                     </p>
                   </div>
                 </div>
@@ -205,7 +205,7 @@ const LandingPage = () => {
                 </div>
                 <div className="bg-purple-50 p-4 rounded-lg">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-purple-900 font-medium">AuraSync Amount</span>
+                    <span className="text-purple-900 font-medium">Slotta Amount</span>
                     <span className="text-2xl font-bold text-purple-600">€40</span>
                   </div>
                   <p className="text-sm text-purple-700">
@@ -233,12 +233,12 @@ const LandingPage = () => {
       <section id="how-it-works" className="py-20 px-6">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-center mb-16" data-testid="how-it-works-title">
-            How AuraSync Works
+            How Slotta Works
           </h2>
           <div className="grid md:grid-cols-4 gap-8">
             {[
               { step: 1, title: 'Client Books', desc: 'Selects service and time slot on your booking page', icon: Calendar },
-              { step: 2, title: 'AuraSync Applied', desc: 'Smart algorithm calculates fair hold amount', icon: Zap },
+              { step: 2, title: 'Slotta Applied', desc: 'Smart algorithm calculates fair hold amount', icon: Zap },
               { step: 3, title: 'Card Authorized', desc: 'Amount held on card, not charged', icon: Shield },
               { step: 4, title: 'Client Shows', desc: 'Hold released. Or no-show? Fair split applied.', icon: CheckCircle },
             ].map((item) => (
@@ -259,13 +259,13 @@ const LandingPage = () => {
       <section className="py-20 px-6 bg-gray-50">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-center mb-16" data-testid="why-different-title">
-            Why AuraSync is Different
+            Why Slotta is Different
           </h2>
           <div className="grid md:grid-cols-2 gap-6">
             {[
               { title: 'Not Full Upfront', desc: 'Other platforms force 100% payment. We hold just enough to protect you.' },
               { title: 'Not Punishment', desc: 'Even no-shows get wallet credit. It\'s about fairness, not revenge.' },
-              { title: 'Adaptive Intelligence', desc: 'AuraSync adjusts based on client history, slot demand, and service length.' },
+              { title: 'Adaptive Intelligence', desc: 'Slotta adjusts based on client history, slot demand, and service length.' },
               { title: 'Stress-Free Rescheduling', desc: 'Smart rules let reliable clients reschedule freely within your terms.' },
             ].map((item, idx) => (
               <Card key={idx} className="p-6 hover:shadow-xl transition">
@@ -334,7 +334,7 @@ const LandingPage = () => {
             <div className="space-y-4 mb-8">
               {[
                 'Unlimited bookings',
-                'Smart AuraSync algorithm',
+                'Smart Slotta algorithm',
                 'Client reliability tracking',
                 'Calendar management',
                 'Wallet & instant payouts',
@@ -368,7 +368,7 @@ const LandingPage = () => {
             Ready to Stop Losing Money?  
           </h2>
           <p className="text-xl text-gray-600 mb-8">
-            Join hundreds of beauty professionals protecting their time with AuraSync
+            Join hundreds of beauty professionals protecting their time with Slotta
           </p>
           <Button size="lg" onClick={() => navigate('/master/dashboard')} data-testid="final-cta-button">
             Get Started Free <ArrowRight className="w-5 h-5 ml-2" />
@@ -383,7 +383,7 @@ const LandingPage = () => {
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <Clock className="w-6 h-6 text-purple-400" />
-                <span className="text-xl font-bold">AuraSync</span>
+                <span className="text-xl font-bold">Slotta</span>
               </div>
               <p className="text-gray-400 text-sm">
                 AI-powered smart scheduling. Fair protection for professionals.
@@ -414,7 +414,7 @@ const LandingPage = () => {
             </div>
           </div>
           <div className="border-t border-gray-800 pt-8 text-center text-sm text-gray-400">
-            <p>© 2025 AuraSync. All rights reserved.</p>
+            <p>© 2025 Slotta. All rights reserved.</p>
           </div>
         </div>
       </footer>

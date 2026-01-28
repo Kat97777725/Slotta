@@ -1,6 +1,6 @@
 """Stripe Connect Integration
 
-Stripe Connect allows AuraSync to:
+Stripe Connect allows Slotta to:
 1. Authorize payment holds (not charges)
 2. Capture holds on no-show
 3. Release holds on completion

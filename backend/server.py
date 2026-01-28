@@ -35,7 +35,7 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 # Create FastAPI app
-app = FastAPI(title="AuraSync API", version="1.0.0")
+app = FastAPI(title="Slotta API", version="1.0.0")
 api_router = APIRouter(prefix="/api")
 
 # ============================================================================
@@ -85,7 +85,7 @@ async def get_master(master_id: str):
 async def create_service(service_input: ServiceCreate):
     """Create a new service"""
     
-    # Calculate base AuraSync
+    # Calculate base Slotta
     base_aurasync = TimeHoldEngine.calculate_base_aurasync(
         service_input.price,
         service_input.duration_minutes
@@ -98,7 +98,7 @@ async def create_service(service_input: ServiceCreate):
     
     await db.services.insert_one(service.model_dump())
     
-    logger.info(f"✅ Service created: {service.name} - €{service.price} (AuraSync: €{service.base_aurasync})")
+    logger.info(f"✅ Service created: {service.name} - €{service.price} (Slotta: €{service.base_aurasync})")
     return service
 
 @api_router.get("/services/master/{master_id}", response_model=List[Service])
@@ -179,7 +179,7 @@ async def create_booking(booking_input: BookingCreate):
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
     
-    # Calculate AuraSync
+    # Calculate Slotta
     aurasync_amount = TimeHoldEngine.calculate_aurasync(
         price=service['price'],
         duration_minutes=service['duration_minutes'],
@@ -250,7 +250,7 @@ async def create_booking(booking_input: BookingCreate):
             booking_time=booking_input.booking_date.strftime("%I:%M %p")
         )
     
-    logger.info(f"✅ Booking created: {client['name']} → {master['name']} (AuraSync: €{aurasync_amount})")
+    logger.info(f"✅ Booking created: {client['name']} → {master['name']} (Slotta: €{aurasync_amount})")
     return booking
 
 @api_router.get("/bookings/{booking_id}", response_model=Booking)
@@ -324,7 +324,7 @@ async def mark_booking_complete(booking_id: str):
 
 @api_router.put("/bookings/{booking_id}/no-show")
 async def mark_booking_no_show(booking_id: str):
-    """Mark booking as no-show and capture AuraSync"""
+    """Mark booking as no-show and capture Slotta"""
     
     booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
     if not booking:
@@ -470,7 +470,7 @@ async def health_check():
 @api_router.get("/")
 async def root():
     return {
-        "message": "AuraSync API v1.0",
+        "message": "Slotta API v1.0",
         "docs": "/docs",
         "health": "/api/health"
     }
@@ -489,7 +489,7 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup_event():
-    logger.info("🚀 AuraSync API starting...")
+    logger.info("🚀 Slotta API starting...")
     logger.info(f"📧 Email service: {'✅ Enabled' if email_service.enabled else '❌ Disabled (add SENDGRID_API_KEY)'}")
     logger.info(f"🤖 Telegram bot: {'✅ Enabled' if telegram_service.enabled else '❌ Disabled (add TELEGRAM_BOT_TOKEN)'}")
     logger.info(f"💳 Stripe: {'✅ Enabled' if stripe_service.enabled else '❌ Disabled (add STRIPE_SECRET_KEY)'}")
@@ -498,4 +498,4 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
-    logger.info("👋 AuraSync API shutting down...")
+    logger.info("👋 Slotta API shutting down...")

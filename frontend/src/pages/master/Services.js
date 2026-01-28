@@ -16,12 +16,12 @@ const Services = () => {
   ]);
 
   return (
-    <MasterLayout active="services" title="Services & AuraSync Rules">
+    <MasterLayout active="services" title="Services & Slotta Rules">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-xl font-semibold mb-2">Manage Your Services</h2>
-          <p className="text-gray-600">Set prices, duration, and AuraSync protection for each service</p>
+          <p className="text-gray-600">Set prices, duration, and Slotta protection for each service</p>
         </div>
         <Button data-testid="add-service-btn">
           <Plus className="w-4 h-4 mr-2" />
@@ -62,7 +62,7 @@ const Services = () => {
                     <div>
                       <div className="flex items-center space-x-2 text-purple-600 mb-1">
                         <Shield className="w-4 h-4" />
-                        <span className="text-sm font-medium">AuraSync</span>
+                        <span className="text-sm font-medium">Slotta</span>
                       </div>
                       <div className="font-bold text-lg text-purple-600">€{service.aurasync}</div>
                       <div className="text-xs text-gray-500 mt-1">
@@ -86,10 +86,10 @@ const Services = () => {
         ))}
       </div>
 
-      {/* AuraSync Rules Explanation */}
+      {/* Slotta Rules Explanation */}
       <Card>
         <CardHeader>
-          <CardTitle>How AuraSync is Calculated</CardTitle>
+          <CardTitle>How Slotta is Calculated</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-2 gap-6">
@@ -134,7 +134,7 @@ const Services = () => {
           </div>
           <div className="mt-4 p-4 bg-purple-50 rounded-lg">
             <p className="text-sm text-purple-900">
-              <strong>Note:</strong> AuraSync never exceeds 70% of service price or drops below €10 for long services.
+              <strong>Note:</strong> Slotta never exceeds 70% of service price or drops below €10 for long services.
             </p>
           </div>
         </CardContent>
@@ -144,7 +144,7 @@ const Services = () => {
       <div className="grid grid-cols-3 gap-6 mt-6">
         {[
           { label: 'Active Services', value: services.filter(s => s.active).length },
-          { label: 'Average AuraSync', value: `€${Math.round(services.reduce((acc, s) => acc + s.aurasync, 0) / services.length)}` },
+          { label: 'Average Slotta', value: `€${Math.round(services.reduce((acc, s) => acc + s.aurasync, 0) / services.length)}` },
           { label: 'Total Protection', value: `€${services.reduce((acc, s) => acc + s.aurasync, 0)}` },
         ].map((stat, idx) => (
           <Card key={idx} className="p-6 text-center">

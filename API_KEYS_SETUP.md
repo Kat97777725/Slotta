@@ -2,13 +2,13 @@
 
 ## ✅ What's Built
 
-Your AuraSync backend is **fully functional** and running! All integration structures are in place. The services work in "mock mode" until you add API keys.
+Your Slotta backend is **fully functional** and running! All integration structures are in place. The services work in "mock mode" until you add API keys.
 
 **Current Status:**
 - ✅ Backend API running on port 8001
 - ✅ MongoDB connected
 - ✅ All endpoints working
-- ✅ AuraSync calculation engine ready
+- ✅ Slotta calculation engine ready
 - ⚠️ Integrations in mock mode (waiting for API keys)
 
 ---
@@ -26,7 +26,7 @@ Your AuraSync backend is **fully functional** and running! All integration struc
 4. Verify your email
 5. Go to **Settings > API Keys**
 6. Click **Create API Key**
-7. Name it "AuraSync"
+7. Name it "Slotta"
 8. Select **"Restricted Access"**
 9. Enable **"Mail Send"** permission only
 10. Click **Create & View**
@@ -65,7 +65,7 @@ curl http://localhost:8001/api/health
 2. Search for **@BotFather**
 3. Send `/newbot`
 4. Follow prompts:
-   - Bot name: "AuraSync Notifications"
+   - Bot name: "Slotta Notifications"
    - Username: "your_aurasync_bot" (must end in 'bot')
 5. **Copy the API token** (looks like: `1234567890:ABCdef...`)
 6. Add to `/app/backend/.env`:
@@ -107,7 +107,7 @@ Your bot will now send notifications when bookings are created!
     STRIPE_PUBLISHABLE_KEY=pk_test_...your_key
     ```
 
-#### B. Enable Stripe Connect (Required for AuraSync)
+#### B. Enable Stripe Connect (Required for Slotta)
 1. In Stripe Dashboard, go to **Connect**
 2. Click **Get Started**
 3. Choose **"Standard"** account type
@@ -145,7 +145,7 @@ curl -X POST http://localhost:8001/api/bookings \
 #### A. Create Google Cloud Project
 1. Go to https://console.cloud.google.com
 2. Click **"Select a project"** > **"New Project"**
-3. Name it "AuraSync"
+3. Name it "Slotta"
 4. Click **Create**
 
 #### B. Enable Google Calendar API
@@ -158,13 +158,13 @@ curl -X POST http://localhost:8001/api/bookings \
 2. Click **"Create Credentials"** > **"OAuth client ID"**
 3. If prompted, configure **OAuth consent screen** first:
    - User Type: **External**
-   - App name: "AuraSync"
+   - App name: "Slotta"
    - User support email: your email
    - Developer contact: your email
    - Click **Save and Continue** through all steps
 4. Back to **Create OAuth client ID**:
    - Application type: **Web application**
-   - Name: "AuraSync Web"
+   - Name: "Slotta Web"
    - Authorized redirect URIs:
      ```
      http://localhost:3000/auth/google/callback
