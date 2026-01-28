@@ -158,6 +158,17 @@ class BookingCreate(BaseModel):
     booking_date: datetime
     notes: Optional[str] = None
 
+class BookingCreateWithPayment(BaseModel):
+    """Booking creation with payment method for public booking flow"""
+    master_id: str
+    service_id: str
+    booking_date: datetime
+    client_name: str
+    client_email: EmailStr
+    client_phone: Optional[str] = None
+    payment_method_id: str  # Stripe payment method ID
+    notes: Optional[str] = None
+
 # Transaction
 class Transaction(MongoModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
