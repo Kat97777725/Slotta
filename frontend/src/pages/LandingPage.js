@@ -20,7 +20,7 @@ const LandingPage = () => {
           <div className="flex items-center space-x-2">
             <Clock className="w-8 h-8 text-purple-600" />
             <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              TimeHold
+              AuraSync
             </span>
           </div>
           <div className="flex items-center space-x-6">
