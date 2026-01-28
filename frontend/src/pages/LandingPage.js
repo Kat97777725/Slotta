@@ -140,7 +140,7 @@ const LandingPage = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4" data-testid="solution-title">
-              Enter TimeHold
+              Enter AuraSync
             </h2>
             <p className="text-xl text-gray-700">
               The fair way to protect your time without losing clients
@@ -157,7 +157,7 @@ const LandingPage = () => {
                   <div>
                     <h3 className="text-lg font-semibold mb-2">Hold, Don't Charge</h3>
                     <p className="text-gray-600">
-                      We authorize a TimeHold amount on their card—but don't take their money unless they no-show.
+                      We authorize a AuraSync amount on their card—but don't take their money unless they no-show.
                     </p>
                   </div>
                 </div>
@@ -168,7 +168,7 @@ const LandingPage = () => {
                   <div>
                     <h3 className="text-lg font-semibold mb-2">Smart, Not Fixed</h3>
                     <p className="text-gray-600">
-                      TimeHold adapts based on service value, client reliability, and booking patterns.
+                      AuraSync adapts based on service value, client reliability, and booking patterns.
                     </p>
                   </div>
                 </div>
@@ -205,7 +205,7 @@ const LandingPage = () => {
                 </div>
                 <div className="bg-purple-50 p-4 rounded-lg">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-purple-900 font-medium">TimeHold Amount</span>
+                    <span className="text-purple-900 font-medium">AuraSync Amount</span>
                     <span className="text-2xl font-bold text-purple-600">€40</span>
                   </div>
                   <p className="text-sm text-purple-700">
@@ -233,12 +233,12 @@ const LandingPage = () => {
       <section id="how-it-works" className="py-20 px-6">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-center mb-16" data-testid="how-it-works-title">
-            How TimeHold Works
+            How AuraSync Works
           </h2>
           <div className="grid md:grid-cols-4 gap-8">
             {[
               { step: 1, title: 'Client Books', desc: 'Selects service and time slot on your booking page', icon: Calendar },
-              { step: 2, title: 'TimeHold Applied', desc: 'Smart algorithm calculates fair hold amount', icon: Zap },
+              { step: 2, title: 'AuraSync Applied', desc: 'Smart algorithm calculates fair hold amount', icon: Zap },
               { step: 3, title: 'Card Authorized', desc: 'Amount held on card, not charged', icon: Shield },
               { step: 4, title: 'Client Shows', desc: 'Hold released. Or no-show? Fair split applied.', icon: CheckCircle },
             ].map((item) => (
@@ -259,13 +259,13 @@ const LandingPage = () => {
       <section className="py-20 px-6 bg-gray-50">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-center mb-16" data-testid="why-different-title">
-            Why TimeHold is Different
+            Why AuraSync is Different
           </h2>
           <div className="grid md:grid-cols-2 gap-6">
             {[
               { title: 'Not Full Upfront', desc: 'Other platforms force 100% payment. We hold just enough to protect you.' },
               { title: 'Not Punishment', desc: 'Even no-shows get wallet credit. It\'s about fairness, not revenge.' },
-              { title: 'Adaptive Intelligence', desc: 'TimeHold adjusts based on client history, slot demand, and service length.' },
+              { title: 'Adaptive Intelligence', desc: 'AuraSync adjusts based on client history, slot demand, and service length.' },
               { title: 'Stress-Free Rescheduling', desc: 'Smart rules let reliable clients reschedule freely within your terms.' },
             ].map((item, idx) => (
               <Card key={idx} className="p-6 hover:shadow-xl transition">
@@ -334,7 +334,7 @@ const LandingPage = () => {
             <div className="space-y-4 mb-8">
               {[
                 'Unlimited bookings',
-                'Smart TimeHold algorithm',
+                'Smart AuraSync algorithm',
                 'Client reliability tracking',
                 'Calendar management',
                 'Wallet & instant payouts',
@@ -368,7 +368,7 @@ const LandingPage = () => {
             Ready to Stop Losing Money?  
           </h2>
           <p className="text-xl text-gray-600 mb-8">
-            Join hundreds of beauty professionals protecting their time with TimeHold
+            Join hundreds of beauty professionals protecting their time with AuraSync
           </p>
           <Button size="lg" onClick={() => navigate('/master/dashboard')} data-testid="final-cta-button">
             Get Started Free <ArrowRight className="w-5 h-5 ml-2" />
@@ -383,7 +383,7 @@ const LandingPage = () => {
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <Clock className="w-6 h-6 text-purple-400" />
-                <span className="text-xl font-bold">TimeHold</span>
+                <span className="text-xl font-bold">AuraSync</span>
               </div>
               <p className="text-gray-400 text-sm">
                 Protect your time. Without punishing clients.
@@ -414,7 +414,7 @@ const LandingPage = () => {
             </div>
           </div>
           <div className="border-t border-gray-800 pt-8 text-center text-sm text-gray-400">
-            <p>© 2025 TimeHold. All rights reserved.</p>
+            <p>© 2025 AuraSync. All rights reserved.</p>
           </div>
         </div>
       </footer>
