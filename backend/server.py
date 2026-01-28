@@ -649,6 +649,68 @@ async def get_client_bookings(client_id: str):
     ).sort("booking_date", -1).to_list(1000)
     return bookings
 
+@api_router.get("/bookings/client/email/{email}")
+async def get_client_bookings_by_email(email: str):
+    """Get all bookings for a client by email"""
+    
+    client = await db.clients.find_one({"email": email}, {"_id": 0})
+    if not client:
+        return []
+    
+    bookings = await db.bookings.find(
+        {"client_id": client['id']},
+        {"_id": 0}
+    ).sort("booking_date", -1).to_list(1000)
+    
+    # Enrich with service and master details
+    enriched = []
+    for booking in bookings:
+        service = await db.services.find_one({"id": booking['service_id']}, {"_id": 0, "name": 1, "price": 1})
+        master = await db.masters.find_one({"id": booking['master_id']}, {"_id": 0, "name": 1, "location": 1})
+        enriched.append({
+            **booking,
+            "service_name": service['name'] if service else "Unknown",
+            "service_price": service['price'] if service else 0,
+            "master_name": master['name'] if master else "Unknown",
+            "master_location": master.get('location') if master else None
+        })
+    
+    return enriched
+
+@api_router.put("/bookings/{booking_id}/cancel")
+async def cancel_booking(booking_id: str):
+    """Cancel a booking and release the payment hold"""
+    
+    booking = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    if booking['status'] in ['completed', 'cancelled', 'no-show']:
+        raise HTTPException(status_code=400, detail="Booking cannot be cancelled")
+    
+    # Check if within reschedule deadline
+    if booking.get('reschedule_deadline') and datetime.utcnow() > booking['reschedule_deadline']:
+        raise HTTPException(status_code=400, detail="Cancellation deadline has passed")
+    
+    # Release payment hold
+    if booking.get('stripe_payment_intent_id'):
+        await stripe_service.cancel_payment(booking['stripe_payment_intent_id'])
+    
+    # Update booking status
+    await db.bookings.update_one(
+        {"id": booking_id},
+        {"$set": {"status": BookingStatus.CANCELLED, "updated_at": datetime.utcnow()}}
+    )
+    
+    # Update client stats
+    await db.clients.update_one(
+        {"id": booking['client_id']},
+        {"$inc": {"cancellations": 1}}
+    )
+    
+    logger.info(f"✅ Booking cancelled: {booking_id}")
+    return {"message": "Booking cancelled successfully", "payment_released": True}
+
 @api_router.put("/bookings/{booking_id}/complete")
 async def mark_booking_complete(booking_id: str):
     """Mark booking as completed"""
